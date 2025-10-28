@@ -1,20 +1,28 @@
 
-
 import React from 'react';
 import type { FretboardNoteProps } from '../types';
 import { COLORS } from '../constants';
 
 const FretboardNote: React.FC<FretboardNoteProps> = React.memo(({
-    note, x, y, fontScale, isRoot, isCharacteristic, layerNotesLookup, layerType, sequenceNumber, noteDisplayMode, highlightedNotes, isPitchHighlighted, onClick, isPlaygroundMode
+    note, x, y, fontScale, isRoot, isCharacteristic, layerNotesLookup, studioMode, sequenceNumber, noteDisplayMode, highlightedNotes, isPitchHighlighted, isTension, isAnchor, onClick
 }) => {
     const baseMarkerRadius = 22; 
     const noteFontSize = 16; 
-    const r = isRoot ? baseMarkerRadius * fontScale : (baseMarkerRadius - 1) * fontScale;
+    const r = (isRoot ? baseMarkerRadius : baseMarkerRadius - 1) * fontScale;
     
     const noteKey = `${note.string}_${note.fret}`;
-    const isInLayer = layerNotesLookup ? (
-        layerType === 'run' || layerType === 'positions' ? layerNotesLookup.has(noteKey) : layerNotesLookup.has(note.noteName || '')
-    ) : false;
+    let isInLayer: boolean;
+
+    if (studioMode === 'inspector' && layerNotesLookup) {
+        isInLayer = layerNotesLookup.has(note.noteName || '');
+    } else if (studioMode === 'anchor' && layerNotesLookup) {
+        isInLayer = layerNotesLookup.has(noteKey);
+    }
+     else if (layerNotesLookup) {
+        isInLayer = layerNotesLookup.has(noteKey);
+    } else {
+        isInLayer = false;
+    }
     
     const opacity = layerNotesLookup ? (isInLayer ? 1.0 : 0.2) : 1.0;
     const fillColor = isRoot ? COLORS.root : COLORS.tone;
@@ -25,7 +33,7 @@ const FretboardNote: React.FC<FretboardNoteProps> = React.memo(({
     let mainText = '';
     let subText = '';
 
-    if (layerNotesLookup && !isInLayer) {
+    if (layerNotesLookup && !isInLayer && !isTension) {
         mainText = note.noteName ?? '';
     } else {
         switch (noteDisplayMode) {
@@ -53,30 +61,27 @@ const FretboardNote: React.FC<FretboardNoteProps> = React.memo(({
         )
     }
 
-    const strokeColor = isPitchHighlighted || isNoteNameHighlighted ? COLORS.accentGold : (isCharacteristic ? COLORS.characteristicOutline : 'none');
-    const strokeWidth = isPitchHighlighted || isNoteNameHighlighted ? 4 : 3;
+    let strokeColor = 'none';
+    if (isAnchor) strokeColor = COLORS.anchorNote;
+    else if (isPitchHighlighted || isNoteNameHighlighted) strokeColor = COLORS.accentGold;
+    else if (isTension) strokeColor = COLORS.tensionNote;
+    else if (isCharacteristic) strokeColor = COLORS.characteristicOutline;
+
+    const strokeWidth = isAnchor ? 5 : 3;
 
     return (
         <g 
             opacity={opacity} 
-            className={onClick ? (isPlaygroundMode ? 'cursor-crosshair' : 'cursor-pointer') : 'cursor-default'}
+            className={onClick ? (studioMode === 'anchor' ? 'cursor-crosshair' : 'cursor-pointer') : 'cursor-default'}
             style={{ transition: 'opacity 0.3s ease-in-out' }}
             onClick={onClick}
         >
-            {isRoot ? (
-                <path
-                    d={`M ${x} ${y - r} L ${x + r * 0.866} ${y + r * 0.5} L ${x - r * 0.866} ${y + r * 0.5} Z`}
-                    fill={fillColor}
-                    stroke={strokeColor}
-                    strokeWidth={strokeWidth}
-                />
-            ) : (
-                <circle
-                    cx={x} cy={y} r={r} fill={fillColor}
-                    stroke={strokeColor}
-                    strokeWidth={strokeWidth}
-                />
-            )}
+            <circle
+                cx={x} cy={y} r={r} fill={fillColor}
+                stroke={strokeColor}
+                strokeWidth={strokeWidth}
+                className={isAnchor ? 'animate-pulse-stroke' : ''}
+            />
 
             {subText ? (
                  <text x={x} y={y - (noteFontSize * fontScale * 0.2)} textAnchor="middle" dy="0.35em" fontSize={noteFontSize * fontScale} fill={textColor} fontWeight="bold" style={{ pointerEvents: 'none' }}>

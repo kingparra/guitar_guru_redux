@@ -1,3 +1,4 @@
+
 import type { FontSizeKey } from './types';
 
 export const TUNING = ['E', 'B', 'G', 'D', 'A', 'E', 'B']; // High to low
@@ -48,9 +49,11 @@ export const COLORS = {
     accentCyan: '#00FFFF',
     accentMagenta: '#FF00FF',
     grid: '#222030',
-    root: '#E59500', // Subdued orange-gold
+    root: '#B8860B', // DarkGoldenRod - subdued
     tone: '#556677',
     characteristicOutline: '#9070C0', // Subdued violet
+    tensionNote: '#FF4500', // OrangeRed for tension notes
+    anchorNote: '#00BFFF', // DeepSkyBlue for anchor note pulse
 };
 
 export const DEGREE_COLORS: Record<string, string> = {

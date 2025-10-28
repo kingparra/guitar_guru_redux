@@ -10,9 +10,9 @@ import { ScaleGenerationService } from '../services/ScaleGenerationService';
 
 
 const ALL_SECTIONS: SectionKey[] = [
-    'overview', 'listeningGuide', 'youtubeTutorials', 'creativeApplication', 
-    'jamTracks', 'toneAndGear', 'licks', 
-    'advancedHarmonization', 'etudes', 'modeSpotlight'
+    'listeningGuide', 'youtubeTutorials', 'creativeApplication', 
+    'jamTracks', 'licks', 
+    'advancedHarmonization', 'etudes'
 ];
 
 const createInitialSectionState = (): LoadingState['sections'] => {
@@ -96,12 +96,13 @@ export const useScaleGenerator = (
         const clientResult = ScaleGenerationService.generateClientData(note, scale);
 
         if (clientResult.type === 'failure') {
+            const initialSections = createInitialSectionState();
+            // Create a synthetic error for a section that no longer exists to display an error
+            (initialSections as any).overview = { status: 'error', error: clientResult.error.message, data: null, retryCount: 1 };
+
             setInternalLoadingState({
                 status: 'error',
-                sections: {
-                    ...createInitialSectionState(),
-                    overview: { status: 'error', error: clientResult.error.message, data: null, retryCount: 1 },
-                },
+                sections: initialSections,
             });
             return;
         }

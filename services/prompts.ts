@@ -1,4 +1,6 @@
+
 import { SCALE_FORMULAS } from '../constants';
+import type { Chord, ClickedNote } from '../types';
 
 const validScales = Object.keys(SCALE_FORMULAS).join(', ');
 
@@ -33,12 +35,6 @@ All linear tablature (licks, etudes) MUST be in this structured JSON format:
 - Bar Lines: A column where ALL 7 strings have a \`TabNote\` with \`fret: "|"\`.
 `;
 
-export const getOverviewPrompt = (rootNote: string, scaleName: string) => `
-${commonPromptHeader(rootNote, scaleName)}
----
-#### SECTION TO GENERATE: Overview ONLY
-Generate the JSON content for the 'overview' section.
-`;
 export const getListeningGuidePrompt = (rootNote: string, scaleName: string) => `
 ${commonPromptHeader(rootNote, scaleName)}
 ---
@@ -63,12 +59,6 @@ ${commonPromptHeader(rootNote, scaleName)}
 #### SECTION TO GENERATE: Jam Tracks ONLY
 Generate the 'jamTracks' array. Find 2-4 high-quality backing tracks on YouTube.
 `;
-export const getToneAndGearPrompt = (rootNote: string, scaleName: string) => `
-${commonPromptHeader(rootNote, scaleName)}
----
-#### SECTION TO GENERATE: Tone & Gear ONLY
-Generate the 'toneAndGear' object. Provide tips for amp settings, effects, and pickups, and list famous artists.
-`;
 export const getLicksPrompt = (rootNote: string, scaleName: string) => `
 ${commonPromptHeader(rootNote, scaleName)}
 ---
@@ -88,49 +78,43 @@ ${commonPromptHeader(rootNote, scaleName)}
 #### SECTION TO GENERATE: Etudes ONLY
 Generate the 'etudes' array (1-2 etudes). Etudes should be at least 8 bars long using \`StructuredTab\`.
 `;
-export const getModeSpotlightPrompt = (rootNote: string, scaleName: string) => `
-${commonPromptHeader(rootNote, scaleName)}
----
-#### SECTION TO GENERATE: Mode Spotlight ONLY
-Generate the 'modeSpotlight' object. Pick a related mode and explain its sound and application.
-`;
 
 export const getChordProgressionAnalysisPrompt = (rootNote: string, scaleName: string, progressionAnalysis: string) => `
 ### Master Prompt for Chord Progression Analysis (Composer Mode)
 **Act as an expert composer and music theorist.**
 **Context:** The user is studying the **${rootNote} ${scaleName}** scale.
 **Request:** Provide a deep, insightful musical analysis for the chord progression: **${progressionAnalysis}**.
-
-**Analysis Guidelines (You must cover all points):**
-1.  **Harmonic Function:** Explain the role of each chord (e.g., tonic, dominant, subdominant, pivot chord, etc.) and why this sequence works theoretically.
-2.  **Emotional Arc & Storytelling:** Describe the emotional journey the progression creates. Does it feel uplifting, melancholic, tense, resolved? Tell a story with the harmony.
-3.  **Voice Leading Insights:** Suggest a simple, effective voice leading path between two key chords in the progression. Describe how a single note moving smoothly (e.g., 'the G on the tonic i chord moves smoothly down to the F# on the V chord') creates a strong connection.
-4.  **Improvisational Roadmap:** Give the guitarist a concrete strategy. What are the "money notes" or "target tones" over each chord? Where can they create tension or find resolution?
-5.  **Compositional Application:** In what part of a song would this progression work best (e.g., verse, chorus, bridge)? Why?
-6.  **Highlighting:** Whenever you mention a musical term that should be highlighted (like a Roman numeral '@@V@@', a note '@@C#@@', or an interval '@@b3@@'), wrap it in '@@' delimiters.
-
-**Output Format:** You MUST return a single, valid JSON object that strictly adheres to the provided schema. Ensure the 'analysisText' is a well-written, single string that weaves all the above points into a cohesive analysis.
+**Output Format:** You MUST return a single, valid JSON object that strictly adheres to the provided schema. Ensure the 'analysisText' is a well-written, single string.
 `;
 
-export const getPlaygroundSuggestionsPrompt = (anchorNote: {noteName: string, octave: number}, scaleContext: {rootNote: string, scaleName: string}) => `
-### Master Prompt for Playground Mode Suggestions
-**Act as an expert guitarist, composer, and theorist with deep knowledge of fretboard ergonomics.**
-**Context:** The user is in "Playground Mode." They have clicked on the note **${anchorNote.noteName}${anchorNote.octave}**. The overall musical context is the **${scaleContext.rootNote} ${scaleContext.scaleName}** scale.
-**Request:** Generate 2-3 creative, musically interesting, and **ergonomically playable** ideas that can be built from this specific anchor note. The ideas should feel like natural "next moves" for an improviser.
+export const getChordInspectorDataPrompt = (rootNote: string, scaleName: string, chord: Chord) => `
+### Master Prompt for Chord Inspector (Composer/Improviser Mode)
+**Act as an expert improviser and music theorist.**
+**Context:** The user is analyzing the **${chord.name} (${chord.degree})** chord within the key of **${rootNote} ${scaleName}**.
+**Request:** Provide a breakdown of the melodic options over this specific chord in this specific key.
 
-**Suggestion Guidelines:**
-1.  **Ergonomics First:** All suggestions must be physically comfortable to play, originating from the anchor note. Think about what a player's hand could realistically do from that position.
-2.  **Variety:** Provide a mix of suggestions. Examples:
-    *   A nearby, playable triad voicing (e.g., "G Major Triad, 1st Inversion").
-    *   A small fragment of a related arpeggio (e.g., "E minor arpeggio fragment").
-    *   A hint of a different mode or scale that also contains the anchor note, creating a moment of color (e.g., "C Lydian Fragment").
-3.  **Clarity:** For each suggestion, provide:
-    *   \`name\`: A clear, descriptive name (e.g., "G Major Triad (Root Position)").
-    *   \`description\`: A concise explanation of what the idea is and why it's musically useful in this context.
-    *   \`diagram\`: A JSON object representing a small fretboard diagram.
-        *   \`notes\`: An array of \`DiagramNote\` objects, including \`string\`, \`fret\`, \`finger\`, \`noteName\`, and \`degree\` relative to the suggestion's own root.
-        *   The diagram should ONLY contain the notes for the specific suggestion.
-        *   Fingering suggestions are CRITICAL for ergonomics.
+**Analysis Steps:**
+1.  **Identify Chord Tones:** List the notes of the chord's triad. These are the "safe" notes.
+2.  **Identify Scale Tones:** List the remaining notes from the parent **${rootNote} ${scaleName}** scale that are NOT in the chord. These are the "passing" notes.
+3.  **Identify Tension Notes:** From the "Scale Tones" list, select the 1-2 most musically interesting "tension" notes that add color and sophistication when played over this chord. For example, the #4 over a major chord (Lydian sound) or the major 7th over a minor chord. Briefly explain WHY each is a good choice.
 
-**Output Format:** You MUST return a single, valid JSON array of 2-3 suggestion objects, strictly adhering to the \`PlaygroundSuggestion[]\` schema. No introductory text or markdown.
+**Output Format:** You MUST return a single, valid JSON object that strictly adheres to the schema: { "chordTones": string[], "scaleTones": string[], "tensionNotes": string[] }. No introductory text or markdown.
+`;
+
+export const getAnchorNoteContextsPrompt = (rootNote: string, scaleName: string, anchorNote: ClickedNote, diatonicChords: Chord[]) => `
+### Master Prompt for Anchor Note System (Improviser Mode)
+**Act as an expert improviser and guitarist.**
+**Context:** The user is in "Anchor Note" mode. They have selected the note **${anchorNote.noteName}** (pitch: ${anchorNote.noteName}${anchorNote.octave}) as their physical and melodic anchor point on the fretboard. The key is **${rootNote} ${scaleName}**.
+**The available diatonic chords are:** ${diatonicChords.map(c => `${c.name} (${c.degree})`).join(', ')}.
+
+**Request:** Identify the different harmonic functions this anchor note can serve within the key. For each function, generate an ergonomic, 2-5 note arpeggio fragment that a guitarist could realistically play starting from or passing through the anchor note.
+
+**Analysis Steps:**
+1.  Iterate through the diatonic chords. Find which chords contain the anchor note **${anchorNote.noteName}**.
+2.  For each match, describe the anchor note's function (e.g., "Root of Gmaj (III)", "b3rd of Emin (i)", "5th of Cmaj (VI)").
+3.  For each function, devise a short, practical, and ergonomic arpeggio fragment (2-5 notes) on the guitar that includes the anchor note. The fragment should be easily playable and demonstrate the note's role in that chord's sound.
+4.  The output must be an array of \`AnchorNoteContext\` objects.
+
+**Output Format:** You MUST return a single, valid JSON array adhering to the schema: [{ "description": string, "arpeggioNotes": [{ "string": number, "fret": number, "finger": string, "degree": string, "noteName": string }] }].
+The \`arpeggioNotes\` MUST contain the anchor note. Fingerings should be ergonomic suggestions (1-4). Degrees should be relative to the arpeggio's root (R, b3, 3, 5, etc.). Note names must be included.
 `;

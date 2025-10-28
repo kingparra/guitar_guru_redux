@@ -6,15 +6,19 @@ import type { ScaleDetails } from '../types';
 
 const CAPTURE_DELAY = 100;
 
+// FIX: Added rootNote and scaleName to the hook's arguments to resolve argument count mismatch and provide necessary data for the PDF filename.
 export const usePdfGenerator = (
     pdfContentRef: RefObject<HTMLDivElement>,
-    scaleDetails: ScaleDetails | null
+    scaleDetails: ScaleDetails | null,
+    rootNote: string,
+    scaleName: string
 ) => {
     const [isSavingPdf, setIsSavingPdf] = useState(false);
     const [pdfError, setPdfError] = useState<string | null>(null);
 
     const generatePdf = useCallback(async () => {
-        if (!pdfContentRef.current || !scaleDetails?.overview) {
+        // FIX: Removed check for deprecated 'overview' property. Check for 'scaleDetails' directly instead.
+        if (!pdfContentRef.current || !scaleDetails) {
             setPdfError('Content is not available for PDF generation.');
             return;
         }
@@ -51,7 +55,8 @@ export const usePdfGenerator = (
                 position += sliceHeight;
             }
 
-            pdf.save(`${scaleDetails.overview.title.replace(/\s+/g, '_')}_Guitar_Scale_Guru.pdf`);
+            // FIX: Used rootNote and scaleName for the filename instead of the removed 'overview' property.
+            pdf.save(`${rootNote}_${scaleName.replace(/\s+/g, '_')}_Guitar_Scale_Guru.pdf`);
         } catch (e: unknown) {
             const message = e instanceof Error ? e.message : 'An unknown error occurred';
             console.error('Failed to save PDF', e);
@@ -59,7 +64,7 @@ export const usePdfGenerator = (
         } finally {
             setIsSavingPdf(false);
         }
-    }, [scaleDetails, pdfContentRef]);
+    }, [scaleDetails, pdfContentRef, rootNote, scaleName]);
 
     return { isSavingPdf, pdfError, generatePdf };
 };

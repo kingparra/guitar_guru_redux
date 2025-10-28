@@ -136,6 +136,8 @@ const ChordProgressionCard: React.FC<ChordProgressionCardProps> = ({ progression
                                             onNoteClick={onNoteClick}
                                             // FIX: Pass null for the required 'highlightedPitch' prop.
                                             highlightedPitch={null}
+                                            // FIX: Added the required 'studioMode' prop, setting it to null as no specific layer is active here.
+                                            studioMode={null}
                                         />
                                     </div>
                                 ) : (

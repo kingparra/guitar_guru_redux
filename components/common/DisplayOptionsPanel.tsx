@@ -1,115 +1,101 @@
-import React from 'react';
-import type { DisplayOptionsPanelProps, LayerType } from '../../types';
 
-const LayerToggle: React.FC<{
+import React from 'react';
+import type { DisplayOptionsPanelProps, StudioMode } from '../../types';
+
+const ModeButton: React.FC<{
     label: string;
     isActive: boolean;
     onClick: () => void;
     disabled?: boolean;
 }> = ({ label, isActive, onClick, disabled }) => (
-    <div className="flex items-center">
-        <button
-            type="button"
-            role="switch"
-            aria-checked={isActive}
-            onClick={onClick}
-            disabled={disabled}
-            className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed ${
-                isActive ? 'bg-cyan-500' : 'bg-gray-600'
-            }`}
-        >
-            <span
-                aria-hidden="true"
-                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    isActive ? 'translate-x-5' : 'translate-x-0'
-                }`}
-            />
-        </button>
-        <span className="ml-3 text-md font-semibold text-gray-200">{label}</span>
-    </div>
+    <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        className={`px-4 py-2 rounded-md font-semibold text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900 focus:ring-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed ${
+            isActive
+                ? 'bg-cyan-500 text-white shadow-lg'
+                : 'bg-gray-700/50 hover:bg-gray-600/50 text-gray-300'
+        }`}
+    >
+        {label}
+    </button>
 );
 
+
 const DisplayOptionsPanel: React.FC<DisplayOptionsPanelProps> = ({
-    activeLayer, onLayerChange,
+    studioMode, onModeChange,
     selectedChordName, onChordChange, diatonicChords, hasRun,
     numPositions, selectedPositionIndex, onPositionChange,
-    isPlaygroundMode, onPlaygroundModeChange,
 }) => {
     
-    const handleLayerChange = (layer: LayerType) => {
-        onLayerChange(activeLayer === layer ? null : layer);
+    const handleModeChange = (mode: StudioMode) => {
+        onModeChange(studioMode === mode ? null : mode);
     };
 
     return (
-        <div className="bg-black/20 p-4 rounded-lg border border-purple-400/20">
-             <div className="flex flex-col md:flex-row items-center justify-center gap-x-6 gap-y-4 flex-wrap">
-                
-                {/* Playground Mode */}
-                <LayerToggle
-                    label="Playground Mode"
-                    isActive={isPlaygroundMode}
-                    onClick={() => onPlaygroundModeChange(!isPlaygroundMode)}
+        <div className="bg-black/20 p-4 rounded-lg border border-purple-400/20 space-y-4">
+             <div className="flex flex-row items-center justify-center gap-x-4 gap-y-2 flex-wrap">
+                <ModeButton
+                    label="Anchor Note"
+                    isActive={studioMode === 'anchor'}
+                    onClick={() => handleModeChange('anchor')}
                 />
-                <div className="h-6 w-px bg-purple-400/20 hidden md:block"></div>
-
-                {/* Diagonal Run */}
-                <LayerToggle
+                <ModeButton
                     label="Diagonal Run"
-                    isActive={activeLayer === 'run'}
-                    onClick={() => handleLayerChange('run')}
-                    disabled={!hasRun || isPlaygroundMode}
+                    isActive={studioMode === 'run'}
+                    onClick={() => handleModeChange('run')}
+                    disabled={!hasRun}
                 />
-                
-                {/* Diatonic Chords */}
-                <div className="flex items-center gap-4 flex-wrap justify-center">
-                     <LayerToggle
-                        label="Diatonic Chords"
-                        isActive={activeLayer === 'chords'}
-                        onClick={() => handleLayerChange('chords')}
-                        disabled={diatonicChords.length === 0 || isPlaygroundMode}
-                    />
-                    {activeLayer === 'chords' && (
-                        <div className="animate-fade-in">
-                            <select
-                                value={selectedChordName || ''}
-                                onChange={(e) => onChordChange(e.target.value)}
-                                className="bg-[#171528]/80 border border-purple-400/30 rounded-md p-2 text-white font-semibold focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
-                            >
-                                {diatonicChords.map(chord => (
-                                    <option key={chord.name} value={chord.name}>
-                                        {chord.degree} - {chord.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    )}
-                </div>
-
-                {/* Scale Positions */}
-                <div className="flex items-center gap-4 flex-wrap justify-center">
-                    <LayerToggle
-                        label="Scale Positions"
-                        isActive={activeLayer === 'positions'}
-                        onClick={() => handleLayerChange('positions')}
-                        disabled={numPositions === 0 || isPlaygroundMode}
-                    />
-                    {activeLayer === 'positions' && (
-                         <div className="animate-fade-in">
-                            <select
-                                value={selectedPositionIndex}
-                                onChange={(e) => onPositionChange(parseInt(e.target.value, 10))}
-                                className="bg-[#171528]/80 border border-purple-400/30 rounded-md p-2 text-white font-semibold focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
-                            >
-                                {Array.from({ length: numPositions }).map((_, index) => (
-                                     <option key={index} value={index}>
-                                        Position {index + 1}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                    )}
-                </div>
+                <ModeButton
+                    label="Chord Inspector"
+                    isActive={studioMode === 'inspector'}
+                    onClick={() => handleModeChange('inspector')}
+                    disabled={diatonicChords.length === 0}
+                />
+                <ModeButton
+                    label="Scale Positions"
+                    isActive={studioMode === 'positions'}
+                    onClick={() => handleModeChange('positions')}
+                    disabled={numPositions === 0}
+                />
             </div>
+
+            {studioMode === 'inspector' && (
+                <div className="animate-fade-in border-t border-purple-400/20 pt-4">
+                    <div className="flex flex-row items-center justify-center gap-2 flex-wrap">
+                        {diatonicChords.map(chord => (
+                            <button
+                                key={chord.name}
+                                onClick={() => onChordChange(chord.name)}
+                                className={`px-3 py-1 rounded-md text-xs font-bold transition-colors ${
+                                    selectedChordName === chord.name
+                                        ? 'bg-fuchsia-500/80 text-white'
+                                        : 'bg-black/30 hover:bg-black/50 text-gray-300'
+                                }`}
+                            >
+                                {chord.degree} - {chord.name}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+            
+            {studioMode === 'positions' && (
+                 <div className="animate-fade-in border-t border-purple-400/20 pt-4 flex justify-center">
+                    <select
+                        value={selectedPositionIndex}
+                        onChange={(e) => onPositionChange(parseInt(e.target.value, 10))}
+                        className="bg-[#171528]/80 border border-purple-400/30 rounded-md p-2 text-white font-semibold focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
+                    >
+                        {Array.from({ length: numPositions }).map((_, index) => (
+                             <option key={index} value={index}>
+                                Position {index + 1}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            )}
         </div>
     );
 };

@@ -1,15 +1,12 @@
 import React, { forwardRef } from 'react';
 import type { ScaleDetails, FontSizeKey } from '../types';
 import { COLORS } from '../constants';
-import OverviewSection from './scaleExplorerSections/OverviewSection';
 import DiagramsSection from './scaleExplorerSections/DiagramsSection';
 import ResourceSection from './scaleExplorerSections/ResourceSection';
 import PracticeSection from './scaleExplorerSections/PracticeSection';
 import ResourceList from './scaleExplorerSections/ResourceList';
 import KeyChordsSection from './practiceSections/KeyChordsSection';
-import ToneAndGearSection from './practiceSections/ToneAndGearSection';
 import TabbedPracticeItemList from './practiceSections/TabbedPracticeItemList';
-import ModeSpotlightSection from './practiceSections/ModeSpotlightSection';
 import { SpotifyIcon, YouTubeIcon, LightbulbIcon, JamIcon } from './common/Icons';
 
 interface PdfDocumentProps {
@@ -20,7 +17,7 @@ interface PdfDocumentProps {
 }
 
 const PdfDocument = forwardRef<HTMLDivElement, PdfDocumentProps>(({ scaleDetails, fontSize, rootNote, scaleName }, ref) => {
-    if (!scaleDetails.overview || !scaleDetails.diagramData) return null;
+    if (!scaleDetails.diagramData) return null;
 
     const wrapperStyles: React.CSSProperties = {
         position: 'absolute', left: '-9999px', top: 0, width: '1024px',
@@ -42,14 +39,10 @@ const PdfDocument = forwardRef<HTMLDivElement, PdfDocumentProps>(({ scaleDetails
             <header style={{ textAlign: 'center', padding: '20px', borderBottom: `1px solid ${COLORS.grid}`, marginBottom: '20px' }}>
                 <h1 style={h1Styles}>Guitar Scale Guru</h1>
                 <h2 style={{ fontSize: '24px', fontWeight: 600, margin: '8px 0 0 0', color: COLORS.textPrimary }}>
-                    {scaleDetails.overview.title}
+                    {rootNote} {scaleName}
                 </h2>
             </header>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '48px' }}>
-                <section>
-                    <h2 style={h2SectionStyles}>Overview</h2>
-                    <OverviewSection overview={scaleDetails.overview} degreeExplanation={scaleDetails.degreeExplanation || ''} />
-                </section>
                 <section>
                     <h2 style={h2SectionStyles}>Diagrams</h2>
                     <DiagramsSection
@@ -58,7 +51,6 @@ const PdfDocument = forwardRef<HTMLDivElement, PdfDocumentProps>(({ scaleDetails
                         rootNote={rootNote}
                         scaleName={scaleName}
                         highlightedNotes={[]}
-                        // FIX: Pass null for the required 'highlightedPitch' prop, as PDF generation is non-interactive.
                         highlightedPitch={null}
                         onNoteClick={() => {}}
                         clientData={scaleDetails as any}
@@ -66,9 +58,6 @@ const PdfDocument = forwardRef<HTMLDivElement, PdfDocumentProps>(({ scaleDetails
                         isSustainOn={false}
                         onSustainToggle={() => {}}
                         onPianoKeyClick={() => {}}
-                        // FIX: Add missing properties for playground mode, which is disabled in PDFs.
-                        isPlaygroundMode={false}
-                        onPlaygroundModeChange={() => {}}
                     />
                 </section>
                 <section>
@@ -93,11 +82,9 @@ const PdfDocument = forwardRef<HTMLDivElement, PdfDocumentProps>(({ scaleDetails
                 <section>
                     <h2 style={h2SectionStyles}>Practice Materials</h2>
                     <PracticeSection>
-                        {scaleDetails.toneAndGear && <ToneAndGearSection toneAndGear={scaleDetails.toneAndGear} />}
                         {scaleDetails.licks && <TabbedPracticeItemList items={scaleDetails.licks} />}
                         {scaleDetails.advancedHarmonization && <TabbedPracticeItemList items={scaleDetails.advancedHarmonization} />}
                         {scaleDetails.etudes && <TabbedPracticeItemList items={scaleDetails.etudes} />}
-                        {scaleDetails.modeSpotlight && <ModeSpotlightSection modeSpotlight={scaleDetails.modeSpotlight} />}
                     </PracticeSection>
                 </section>
             </div>

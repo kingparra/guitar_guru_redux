@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import type {
     SongAnalysisResult,
@@ -17,11 +18,9 @@ import NotationAnalyzer from './components/NotationAnalyzer';
 import ScaleExplorer from './components/ScaleExplorer';
 import PdfDocument from './components/PdfDocument';
 import Footer from './components/common/Footer';
-import PlaygroundModal from './components/common/PlaygroundModal';
 import { playNote, startSustainedNote, stopSustainedNote } from './utils/audioUtils';
 
 const sectionIds: Record<string, string> = {
-    overview: 'section-overview',
     harmony: 'section-harmony',
     practice: 'section-practice',
     resources: 'section-resources',
@@ -42,8 +41,6 @@ const App: React.FC = () => {
     const [cache, setCache] = useState<AppCache>({});
     const [clickedNote, setClickedNote] = useState<ClickedNote | null>(null);
     const [isSustainOn, setIsSustainOn] = useState(false);
-    const [isPlaygroundMode, setIsPlaygroundMode] = useState(false);
-    const [playgroundAnchorNote, setPlaygroundAnchorNote] = useState<ClickedNote | null>(null);
 
     const {
         rootNote,
@@ -84,7 +81,9 @@ const App: React.FC = () => {
 
     const { isSavingPdf, pdfError, generatePdf } = usePdfGenerator(
         pdfContentRef,
-        scaleDetails
+        scaleDetails,
+        rootNote,
+        scaleName
     );
 
     const handleGenerate = async (note: string, scale: string) => {
@@ -110,18 +109,14 @@ const App: React.FC = () => {
     };
 
     const handleNoteClick = (note: ClickedNote) => {
-        if (isPlaygroundMode) {
-            setPlaygroundAnchorNote(note);
+        if (isSustainOn) {
+            startSustainedNote(note.noteName, note.octave);
         } else {
-            if (isSustainOn) {
-                startSustainedNote(note.noteName, note.octave);
-            } else {
-                playNote(note.noteName, note.octave);
-            }
-            setClickedNote(note);
-            setHighlightedNotes([]);
-            setHighlightedPitch(note);
+            playNote(note.noteName, note.octave);
         }
+        setClickedNote(note);
+        setHighlightedNotes([]);
+        setHighlightedPitch(note);
     };
 
     const handlePianoKeyClick = (noteName: string, octave: number) => {
@@ -132,8 +127,8 @@ const App: React.FC = () => {
             playNote(note.noteName, note.octave);
         }
         setClickedNote(note);
-        setHighlightedPitch(null);
-        setHighlightedNotes([note.noteName]);
+        setHighlightedNotes([]);
+        setHighlightedPitch(note);
     };
 
     const handleGenerateFromAnalysis = (result: SongAnalysisResult) => {
@@ -228,22 +223,12 @@ const App: React.FC = () => {
                                 isSustainOn={isSustainOn}
                                 onSustainToggle={handleSustainToggle}
                                 onPianoKeyClick={handlePianoKeyClick}
-                                isPlaygroundMode={isPlaygroundMode}
-                                onPlaygroundModeChange={setIsPlaygroundMode}
                             />
                         </div>
                     </div>
                 </main>
                 <Footer />
             </div>
-
-            {playgroundAnchorNote && isPlaygroundMode && (
-                <PlaygroundModal
-                    anchorNote={playgroundAnchorNote}
-                    onClose={() => setPlaygroundAnchorNote(null)}
-                    scaleContext={{ rootNote, scaleName }}
-                />
-            )}
 
             {isContentComplete && scaleDetails && (
                 <PdfDocument

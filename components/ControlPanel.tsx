@@ -48,8 +48,8 @@ const NavigationMode: React.FC<{ sectionIds: Record<string, string>, onSwitchToS
         document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
+    // FIX: Removed "Overview" nav item because the section was removed.
     const navItems = [
-        { id: sectionIds.overview, label: 'Overview' },
         { id: sectionIds.harmony, label: 'Harmony' },
         { id: sectionIds.practice, label: 'Practice' },
         { id: sectionIds.resources, label: 'Resources' },

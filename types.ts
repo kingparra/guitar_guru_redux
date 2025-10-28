@@ -1,5 +1,4 @@
 
-
 export interface Song {
     title: string;
     artist: string;
@@ -22,11 +21,6 @@ export interface JamTrack {
     title: string;
     creator: string;
     youtubeLink: string;
-}
-
-export interface ToneSuggestion {
-    setting: string;
-    description: string;
 }
 
 export interface TabNote {
@@ -95,12 +89,6 @@ export interface DisplayResource {
     type: 'spotify' | 'youtube' | 'jam' | 'creative';
 }
 
-export interface ModeInfo {
-    name: string;
-    explanation: string;
-    soundAndApplication: string;
-}
-
 export interface DiagramNote {
     string: number;
     fret: number | string;
@@ -127,22 +115,10 @@ export interface DiagramData {
 export interface ScaleDetails {
     diagramData: DiagramData;
     degreeExplanation: string;
-    overview: {
-        title: string;
-        character: string;
-        theory: string;
-        usage: string;
-        parentScale?: string;
-        relativeModes?: string;
-    };
     listeningGuide: Song[];
     youtubeTutorials: Tutorial[];
     creativeApplication: CreativeVideo[];
     jamTracks: JamTrack[];
-    toneAndGear: {
-        suggestions: ToneSuggestion[];
-        famousArtists: string;
-    };
     keyChords: {
         diatonicChords: Map<string, Chord>;
         progressions: ChordProgression[];
@@ -150,7 +126,6 @@ export interface ScaleDetails {
     licks: Lick[];
     advancedHarmonization: HarmonizationExercise[];
     etudes: Etude[];
-    modeSpotlight: ModeInfo;
 }
 
 // Data that is generated instantly on the client, without AI
@@ -186,15 +161,27 @@ export interface ScaleExplorerProps {
     isSustainOn: boolean;
     onSustainToggle: () => void;
     onPianoKeyClick: (noteName: string, octave: number) => void;
-    isPlaygroundMode: boolean;
-    onPlaygroundModeChange: (isOn: boolean) => void;
 }
 
-export type LayerType = 'run' | 'chords' | 'positions';
+export type LayerType = 'run' | 'positions' | 'inspector';
+export type StudioMode = LayerType | 'anchor' | null;
+
+
+export interface ChordInspectorData {
+    chordTones: string[];
+    scaleTones: string[];
+    tensionNotes: string[];
+}
+
+export interface AnchorNoteContext {
+    description: string;
+    arpeggioNotes: DiagramNote[];
+}
 
 export interface FretboardDiagramProps {
     title: string;
     frettedNotes: DiagramNote[];
+    chromaticNotes?: DiagramNote[];
     characteristicDegrees: string[];
     fretRange: [number, number];
     noteDisplayMode: 'finger' | 'degree' | 'noteName' | 'sequence';
@@ -207,9 +194,10 @@ export interface FretboardDiagramProps {
     highlightedNotes?: string[];
     highlightedPitch: ClickedNote | null;
     onNoteClick?: (note: ClickedNote) => void;
-    activeLayerType?: LayerType | null;
+    studioMode: StudioMode;
     activeLayerNotes?: Set<string>;
-    isPlaygroundMode?: boolean;
+    tensionNotes?: string[];
+    anchorNote?: ClickedNote | null;
 }
 
 export interface FretboardNoteProps {
@@ -221,12 +209,13 @@ export interface FretboardNoteProps {
     isCharacteristic: boolean;
     noteDisplayMode: FretboardDiagramProps['noteDisplayMode'];
     layerNotesLookup?: Set<string>;
-    layerType?: LayerType | null;
+    studioMode: StudioMode;
     sequenceNumber?: number;
     highlightedNotes?: string[];
     isPitchHighlighted?: boolean;
+    isTension?: boolean;
+    isAnchor?: boolean;
     onClick?: () => void;
-    isPlaygroundMode?: boolean;
 }
 
 export interface SongAnalysisResult {
@@ -301,15 +290,13 @@ export interface DiagramsSectionProps {
     isSustainOn: boolean;
     onSustainToggle: () => void;
     onPianoKeyClick: (noteName: string, octave: number) => void;
-    isPlaygroundMode: boolean;
-    onPlaygroundModeChange: (isOn: boolean) => void;
 }
 
 export interface DisplayOptionsPanelProps {
-    activeLayer: LayerType | null;
-    onLayerChange: (layer: LayerType | null) => void;
+    studioMode: StudioMode;
+    onModeChange: (mode: StudioMode) => void;
     
-    // Chord layer props
+    // Chord Inspector props
     selectedChordName: string | null;
     onChordChange: (chordName: string) => void;
     diatonicChords: Chord[];
@@ -319,10 +306,6 @@ export interface DisplayOptionsPanelProps {
     numPositions: number;
     selectedPositionIndex: number;
     onPositionChange: (index: number) => void;
-
-    // Playground mode props
-    isPlaygroundMode: boolean;
-    onPlaygroundModeChange: (isOn: boolean) => void;
 }
 
 export interface PianoKeyboardProps {
@@ -330,12 +313,33 @@ export interface PianoKeyboardProps {
     clickedNote: ClickedNote | null;
 }
 
-export interface PlaygroundSuggestion {
-    name: string;
-    description: string;
-    diagram: {
-        notes: DiagramNote[];
-        barres?: Barre[];
-        fretRange: [number, number];
-    };
+export interface ChordInspectorPanelProps {
+    data: ChordInspectorData | null;
+    isLoading: boolean;
+    error: string | null;
+    selectedChord: Chord | null;
+    selectedVoicingIndex: number;
+    onVoicingChange: (index: number) => void;
+    onNoteClick: (note: ClickedNote) => void;
+}
+
+export interface VoicingExplorerProps {
+    voicings: Voicing[];
+    selectedVoicingIndex: number;
+    onVoicingChange: (index: number) => void;
+    onNoteClick: (note: ClickedNote) => void;
+    chordName: string;
+    chordDegree: string;
+}
+
+export interface AnchorContextPanelProps {
+    contexts: AnchorNoteContext[] | null;
+    onContextSelect: (context: AnchorNoteContext) => void;
+    isLoading: boolean;
+    error: string | null;
+    anchorNote: ClickedNote | null;
+}
+
+export interface ChatPanelProps {
+    // For future implementation
 }

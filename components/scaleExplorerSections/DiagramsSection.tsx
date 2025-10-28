@@ -1,98 +1,164 @@
+
 import React, { useMemo, useState, useEffect } from 'react';
-import type { DiagramsSectionProps, FingeringMap, DiagramNote, LayerType } from '../../types';
+import type { DiagramsSectionProps, StudioMode, ChordInspectorData, AnchorNoteContext, DiagramNote, Chord, ClickedNote } from '../../types';
 import { FONT_SIZES, NUM_FRETS } from '../../constants';
-import { calculateFretWindow } from '../../utils/diagramUtils';
+import * as geminiService from '../../services/geminiService';
+import { findPitchOnFretboard } from '../../utils/musicUtils';
 import FretboardDiagram from '../FretboardDiagram';
 import DiagramLegend from '../common/DiagramLegend';
 import NotationPanel from '../common/NotationPanel';
 import PianoKeyboard from '../common/PianoKeyboard';
 import DisplayOptionsPanel from '../common/DisplayOptionsPanel';
-
-const prepareNotesForPosition = (positionMap: FingeringMap, notesOnFretboard: DiagramNote[]): DiagramNote[] => {
-    const masterNotesMap = new Map(notesOnFretboard.map(n => [`${n.string}_${n.fret}`, n]));
-    return positionMap.map(posEntry => {
-        const masterNote = masterNotesMap.get(posEntry.key);
-        const [string, fret] = posEntry.key.split('_').map(s => parseInt(s, 10));
-        return masterNote ? { ...masterNote, finger: posEntry.finger } : { string, fret, finger: posEntry.finger, degree: '' };
-    });
-};
+import Card from '../common/Card';
+import ChordInspectorPanel from '../common/ChordInspectorPanel';
+import AnchorContextPanel from '../common/AnchorContextPanel';
+import ChatPanel from '../common/ChatPanel';
+import VoicingExplorer from '../common/VoicingExplorer';
 
 const DiagramsSection: React.FC<DiagramsSectionProps> = React.memo(({ 
-    diagramData, fontSize, rootNote, scaleName, highlightedNotes, highlightedPitch, onNoteClick, clientData, clickedNote, isSustainOn, onSustainToggle, onPianoKeyClick,
-    isPlaygroundMode, onPlaygroundModeChange
+    diagramData, fontSize, rootNote, scaleName, highlightedNotes, highlightedPitch, onNoteClick, clientData, clickedNote, isSustainOn, onSustainToggle, onPianoKeyClick
 }) => {
     const fontScaleValue = parseFloat(FONT_SIZES[fontSize].replace('rem', ''));
     const { notesOnFretboard, fingering, diagonalRun, characteristicDegrees } = diagramData;
 
-    const [activeLayer, setActiveLayer] = useState<LayerType | null>(null);
+    // Studio Mode State
+    const [studioMode, setStudioMode] = useState<StudioMode>(null);
+    
+    // Layer-specific state
     const [selectedChordName, setSelectedChordName] = useState<string | null>(null);
     const [selectedPositionIndex, setSelectedPositionIndex] = useState(0);
+    const [selectedVoicingIndex, setSelectedVoicingIndex] = useState(0);
 
-    const diatonicChords = useMemo(() => Array.from(clientData?.keyChords.diatonicChords.values() || []), [clientData]);
-    
-    // Effect to manage layer exclusivity and default selections
-    useEffect(() => {
-        if (isPlaygroundMode) {
-            setActiveLayer(null);
-        }
-    }, [isPlaygroundMode]);
+    // Anchor Note State
+    const [anchorNote, setAnchorNote] = useState<ClickedNote | null>(null);
+    const [anchorContexts, setAnchorContexts] = useState<AnchorNoteContext[] | null>(null);
+    const [selectedAnchorContext, setSelectedAnchorContext] = useState<AnchorNoteContext | null>(null);
+    const [isAnchorContextLoading, setIsAnchorContextLoading] = useState(false);
+    const [anchorContextError, setAnchorContextError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const isChordSelectionInvalid = selectedChordName && !diatonicChords.some(c => c.name === selectedChordName);
-        if (activeLayer === 'chords' && diatonicChords.length > 0 && (!selectedChordName || isChordSelectionInvalid)) {
-            setSelectedChordName(diatonicChords[0].name);
-        }
+    // Chord Inspector State
+    const [inspectorData, setInspectorData] = useState<ChordInspectorData | null>(null);
+    const [isInspectorLoading, setIsInspectorLoading] = useState(false);
+    const [inspectorError, setInspectorError] = useState<string | null>(null);
 
-        if (activeLayer === 'positions' && (selectedPositionIndex >= fingering.length || selectedPositionIndex < 0)) {
-            setSelectedPositionIndex(0);
-        }
-    }, [activeLayer, selectedChordName, diatonicChords, selectedPositionIndex, fingering.length]);
+    // Derived Data
+    const diatonicChords = useMemo(() => Array.from(clientData.keyChords.diatonicChords.values()), [clientData]);
+    const selectedChord = useMemo(() => diatonicChords.find(c => c.name === selectedChordName) || null, [selectedChordName, diatonicChords]);
 
-
-    const activeLayerNotes = useMemo(() => {
-        if (activeLayer === 'run' && diagonalRun) {
-            return new Set(diagonalRun.map(n => `${n.string}_${n.fret}`));
-        }
-        if (activeLayer === 'chords' && selectedChordName) {
-            const chord = diatonicChords.find(c => c.name === selectedChordName);
-            return new Set(chord ? chord.triadNotes : []);
-        }
-        if (activeLayer === 'positions' && fingering[selectedPositionIndex]) {
-            return new Set(fingering[selectedPositionIndex].map(entry => entry.key));
-        }
-        return undefined;
-    }, [activeLayer, selectedChordName, diagonalRun, diatonicChords, selectedPositionIndex, fingering]);
-
-    const handlePlaygroundModeChange = (isOn: boolean) => {
-        if (isOn) {
-            setActiveLayer(null);
-        }
-        onPlaygroundModeChange(isOn);
+    // Handler for chord change, which also resets voicing index
+    const handleChordChange = (chordName: string) => {
+        setSelectedChordName(chordName);
+        setSelectedVoicingIndex(0); // Reset to first voicing
     };
 
-    const noteDisplayMode = useMemo(() => {
-        if (activeLayer === 'run') return 'sequence';
-        if (activeLayer === 'positions') return 'finger';
-        return 'noteName';
-    }, [activeLayer]);
+    // Effects for fetching AI data when modes/selections change
+    useEffect(() => {
+        if (studioMode === 'inspector' && selectedChord) {
+            const fetchData = async () => {
+                setIsInspectorLoading(true);
+                setInspectorError(null);
+                try {
+                    const data = await geminiService.generateChordInspectorData(rootNote, scaleName, selectedChord);
+                    setInspectorData(data);
+                } catch (e) {
+                    setInspectorError(e instanceof Error ? e.message : 'Failed to load inspector data.');
+                } finally {
+                    setIsInspectorLoading(false);
+                }
+            };
+            fetchData();
+        } else {
+            setInspectorData(null);
+        }
+    }, [studioMode, selectedChord, rootNote, scaleName]);
 
+    useEffect(() => {
+        if (studioMode === 'anchor' && anchorNote) {
+            const fetchData = async () => {
+                setIsAnchorContextLoading(true);
+                setAnchorContextError(null);
+                setSelectedAnchorContext(null); // Reset visualization
+                try {
+                    const data = await geminiService.generateAnchorNoteContexts(rootNote, scaleName, anchorNote, diatonicChords);
+                    setAnchorContexts(data);
+                } catch (e) {
+                    setAnchorContextError(e instanceof Error ? e.message : 'Failed to load anchor contexts.');
+                } finally {
+                    setIsAnchorContextLoading(false);
+                }
+            };
+            fetchData();
+        } else {
+            setAnchorContexts(null);
+            setSelectedAnchorContext(null);
+        }
+    }, [studioMode, anchorNote, rootNote, scaleName, diatonicChords]);
+
+
+    // Effect to manage selections when modes change
+    useEffect(() => {
+        if (studioMode === 'inspector' && diatonicChords.length > 0 && !selectedChordName) {
+            handleChordChange(diatonicChords[0].name);
+        }
+        if (studioMode !== 'anchor') {
+            setAnchorNote(null);
+        }
+    }, [studioMode, diatonicChords, selectedChordName]);
+
+    const handleNoteClickForStudio = (note: ClickedNote) => {
+        if (studioMode === 'anchor') {
+            setAnchorNote(note);
+        }
+        onNoteClick(note);
+    }
+    
+    // Calculate active notes for layers using useMemo for performance
+    const activeLayerNotes = useMemo(() => {
+        if (studioMode === 'run' && diagonalRun) {
+            return new Set(diagonalRun.map(n => `${n.string}_${n.fret}`));
+        }
+        if (studioMode === 'inspector' && inspectorData) {
+            return new Set(inspectorData.chordTones);
+        }
+        if (studioMode === 'positions' && fingering[selectedPositionIndex]) {
+            return new Set(fingering[selectedPositionIndex].map(entry => entry.key));
+        }
+        if (studioMode === 'anchor' && selectedAnchorContext) {
+            return new Set(selectedAnchorContext.arpeggioNotes.map(n => `${n.string}_${n.fret}`));
+        }
+        return undefined;
+    }, [studioMode, diagonalRun, inspectorData, selectedPositionIndex, fingering, selectedAnchorContext]);
+
+
+    const noteDisplayMode = useMemo(() => {
+        if (studioMode === 'run') return 'sequence';
+        if (studioMode === 'positions' || studioMode === 'anchor') return 'finger';
+        return 'noteName';
+    }, [studioMode]);
 
     const allFrettedNotes = useMemo(() => notesOnFretboard.filter(n => typeof n.fret === 'number' && n.fret > 0), [notesOnFretboard]);
-    
-    const allOpenStrings = useMemo(() => {
-        const openNotes = notesOnFretboard.filter(n => n.fret === 0);
-        return openNotes.map(n => n.string);
-    }, [notesOnFretboard]);
+    const allOpenStrings = useMemo(() => notesOnFretboard.filter(n => n.fret === 0).map(n => n.string), [notesOnFretboard]);
+
+    // Handle chromatic notes from piano
+    const chromaticNotes = useMemo(() => {
+        if (highlightedPitch && !notesOnFretboard.some(n => n.noteName === highlightedPitch.noteName)) {
+            return findPitchOnFretboard(highlightedPitch);
+        }
+        return [];
+    }, [highlightedPitch, notesOnFretboard]);
     
     return (
-        <>
+        <Card>
+            <h2 className="text-3xl font-bold text-center mb-4 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500">
+                Fretboard Studio
+            </h2>
             <DiagramLegend />
 
-            {/* --- Music Theory Studio --- */}
             <div className="space-y-8">
                 <FretboardDiagram
                     title={`${rootNote} ${scaleName} - Full Neck`}
                     frettedNotes={allFrettedNotes}
+                    chromaticNotes={chromaticNotes}
                     openStrings={allOpenStrings}
                     characteristicDegrees={characteristicDegrees}
                     fretRange={[0, NUM_FRETS]}
@@ -100,25 +166,46 @@ const DiagramsSection: React.FC<DiagramsSectionProps> = React.memo(({
                     noteDisplayMode={noteDisplayMode}
                     highlightedNotes={highlightedNotes}
                     highlightedPitch={highlightedPitch}
-                    onNoteClick={onNoteClick}
-                    activeLayerType={activeLayer}
+                    onNoteClick={handleNoteClickForStudio}
+                    studioMode={studioMode}
                     activeLayerNotes={activeLayerNotes}
-                    isPlaygroundMode={isPlaygroundMode}
+                    tensionNotes={studioMode === 'inspector' ? inspectorData?.tensionNotes : undefined}
+                    anchorNote={anchorNote}
                 />
 
                 <DisplayOptionsPanel
-                    activeLayer={activeLayer}
-                    onLayerChange={setActiveLayer}
+                    studioMode={studioMode}
+                    onModeChange={setStudioMode}
                     selectedChordName={selectedChordName}
-                    onChordChange={setSelectedChordName}
+                    onChordChange={handleChordChange}
                     diatonicChords={diatonicChords}
                     hasRun={diagonalRun && diagonalRun.length > 0}
                     numPositions={fingering.length}
                     selectedPositionIndex={selectedPositionIndex}
                     onPositionChange={setSelectedPositionIndex}
-                    isPlaygroundMode={isPlaygroundMode}
-                    onPlaygroundModeChange={handlePlaygroundModeChange}
                 />
+
+                {studioMode === 'inspector' && (
+                    <ChordInspectorPanel 
+                        data={inspectorData}
+                        isLoading={isInspectorLoading}
+                        error={inspectorError}
+                        selectedChord={selectedChord}
+                        selectedVoicingIndex={selectedVoicingIndex}
+                        onVoicingChange={setSelectedVoicingIndex}
+                        onNoteClick={onNoteClick}
+                    />
+                )}
+
+                 {studioMode === 'anchor' && (
+                    <AnchorContextPanel
+                        contexts={anchorContexts}
+                        onContextSelect={setSelectedAnchorContext}
+                        isLoading={isAnchorContextLoading}
+                        error={anchorContextError}
+                        anchorNote={anchorNote}
+                    />
+                )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2">
@@ -128,8 +215,10 @@ const DiagramsSection: React.FC<DiagramsSectionProps> = React.memo(({
                         <NotationPanel clickedNote={clickedNote} isSustainOn={isSustainOn} onSustainToggle={onSustainToggle} />
                     </div>
                 </div>
+
+                <ChatPanel />
             </div>
-        </>
+        </Card>
     );
 });
 

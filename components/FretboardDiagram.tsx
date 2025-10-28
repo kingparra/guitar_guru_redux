@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import type { FretboardDiagramProps, DiagramNote, Barre, PathDiagramNote, ClickedNote } from '../types';
 import { FRET_MARKERS, COLORS, TUNING } from '../constants';
@@ -180,14 +181,16 @@ const SvgClickTargets: React.FC<{
     getX: (f: number) => number;
     getY: (s: number) => number;
     onNoteClick?: (note: ClickedNote) => void;
-    isPlaygroundMode?: boolean;
-}> = React.memo(({ numStrings, fretsToRender, fretWidth, fretHeight, getX, getY, onNoteClick, isPlaygroundMode }) => {
+    studioMode: FretboardDiagramProps['studioMode'];
+}> = React.memo(({ numStrings, fretsToRender, fretWidth, fretHeight, getX, getY, onNoteClick, studioMode }) => {
     if (!onNoteClick) return null;
 
     const handleClick = (stringIndex: number, fret: number) => {
         const { noteName, octave } = getNoteFromFret(stringIndex, fret);
         onNoteClick({ noteName, octave });
     };
+
+    const cursorClass = studioMode === 'anchor' ? 'cursor-crosshair' : 'cursor-pointer';
 
     return (
         <g className="click-targets">
@@ -202,7 +205,7 @@ const SvgClickTargets: React.FC<{
                             width={fretWidth}
                             height={fretHeight}
                             fill="transparent"
-                            className={isPlaygroundMode ? 'cursor-crosshair' : 'cursor-pointer'}
+                            className={cursorClass}
                             onClick={() => handleClick(stringIndex, fret)}
                         />
                     );
@@ -212,14 +215,15 @@ const SvgClickTargets: React.FC<{
     );
 });
 
-
 const FretboardDiagram: React.FC<FretboardDiagramProps> = ({
-    title, frettedNotes, characteristicDegrees, fretRange, noteDisplayMode = 'noteName',
+    title, frettedNotes, chromaticNotes = [], characteristicDegrees, fretRange, noteDisplayMode = 'noteName',
     diagonalRun, barres, openStrings, mutedStrings, fontScale = 1.0, numStrings = 7, highlightedNotes, highlightedPitch, onNoteClick,
-    activeLayerType, activeLayerNotes, isPlaygroundMode
+    studioMode, activeLayerNotes, tensionNotes, anchorNote
 }) => {
     const layout = useFretboardLayout(fretRange, numStrings);
     const { diagramWidth, diagramHeight, fretWidth, getX, getY, LABEL_COL_WIDTH, FRET_NUM_HEIGHT, fretsToRender, paddingX, fretHeight } = layout;
+
+    const allNotesToRender = useMemo(() => [...frettedNotes, ...chromaticNotes], [frettedNotes, chromaticNotes]);
 
     const runSequenceLookup = useMemo(() => {
         if (noteDisplayMode !== 'sequence' || !activeLayerNotes) return new Map<string, number>();
@@ -249,13 +253,13 @@ const FretboardDiagram: React.FC<FretboardDiagramProps> = ({
                 <SvgStrings count={numStrings} getY={getY} width={diagramWidth} xOffset={nutX} paddingX={paddingX} />
                 <SvgFrets numStrings={numStrings} frets={fretsToRender} getX={getX} getY={getY} fretWidth={fretWidth} nutX={nutX} />
                 <SvgFretMarkers fretRange={fretRange} getX={getX} getY={getY} numStrings={numStrings} />
-                <SvgClickTargets numStrings={numStrings} fretsToRender={fretsToRender} fretWidth={fretWidth} fretHeight={fretHeight} getX={getX} getY={getY} onNoteClick={onNoteClick} isPlaygroundMode={isPlaygroundMode}/>
+                <SvgClickTargets numStrings={numStrings} fretsToRender={fretsToRender} fretWidth={fretWidth} fretHeight={fretHeight} getX={getX} getY={getY} onNoteClick={onNoteClick} studioMode={studioMode} />
                 <SvgBarres barres={barres} fretRange={fretRange} getX={getX} getY={getY} />
                 
                 {diagonalRun && <SvgSlideLines run={diagonalRun} getX={getX} getY={getY} />}
 
                 <g className="notes">
-                    {frettedNotes.map((note, index) => {
+                    {allNotesToRender.map((note, index) => {
                         if (typeof note.fret !== 'number') {
                             return null;
                         }
@@ -267,6 +271,8 @@ const FretboardDiagram: React.FC<FretboardDiagramProps> = ({
                         
                         const octave = getOctaveForNote(note.string, fret);
                         const isPitchHighlighted = !!(highlightedPitch && highlightedPitch.noteName === note.noteName && highlightedPitch.octave === octave);
+                        const isAnchor = !!(anchorNote && anchorNote.noteName === note.noteName && anchorNote.octave === octave);
+                        const isTension = tensionNotes?.includes(note.noteName || '') || false;
 
                         return (
                             <FretboardNote 
@@ -283,8 +289,9 @@ const FretboardDiagram: React.FC<FretboardDiagramProps> = ({
                                 isPitchHighlighted={isPitchHighlighted}
                                 onClick={handleClick}
                                 layerNotesLookup={activeLayerNotes}
-                                layerType={activeLayerType}
-                                isPlaygroundMode={isPlaygroundMode}
+                                studioMode={studioMode}
+                                isTension={isTension}
+                                isAnchor={isAnchor}
                             />
                         );
                     })}

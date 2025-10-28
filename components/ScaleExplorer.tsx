@@ -1,27 +1,24 @@
+
 import React from 'react';
 import type {
     ScaleExplorerProps,
     PracticeMaterial,
-    SectionKey
+    SectionKey,
+    SectionState,
 } from '../types';
 import Card from './common/Card';
 import Section from './common/Section';
 import { COLORS } from '../constants';
-import OverviewSection from './scaleExplorerSections/OverviewSection';
 import DiagramsSection from './scaleExplorerSections/DiagramsSection';
 import SectionLoader from './common/SectionLoader';
 import SectionPlaceholder from './common/SectionPlaceholder';
 import KeyChordsSection from './practiceSections/KeyChordsSection';
-import ToneAndGearSection from './practiceSections/ToneAndGearSection';
-import ModeSpotlightSection from './practiceSections/ModeSpotlightSection';
 import TabbedPracticeItemList from './practiceSections/TabbedPracticeItemList';
 import {
-    BookOpenIcon,
     SpotifyIcon,
     YouTubeIcon,
     LightbulbIcon,
     JamIcon,
-    GearIcon,
     SparklesIcon,
     FireIcon,
     GlobeIcon,
@@ -55,12 +52,6 @@ interface SectionConfig {
 }
 
 const sectionConfig: Record<SectionKey, SectionConfig> = {
-    overview: {
-        title: 'Overview',
-        description: 'Get a deep dive into the theory and character of the scale.',
-        icon: <BookOpenIcon />,
-        component: (data, props) => <OverviewSection overview={data} degreeExplanation={props.degreeExplanation} />,
-    },
     listeningGuide: {
         title: 'Listening Guide',
         description: 'Discover songs that prominently feature this scale.',
@@ -89,12 +80,6 @@ const sectionConfig: Record<SectionKey, SectionConfig> = {
         component: (data) => <ResourceList title="Jam Tracks" items={data} icon={<JamIcon />} />,
         isList: true,
     },
-    toneAndGear: {
-        title: 'Tone & Gear',
-        description: 'Get suggestions for amp settings, effects, and famous artist tones.',
-        icon: <GearIcon />,
-        component: (data) => <ToneAndGearSection toneAndGear={data} />,
-    },
     licks: {
         title: 'Classic Licks',
         description: 'Learn some classic licks and phrases that use this scale.',
@@ -116,12 +101,6 @@ const sectionConfig: Record<SectionKey, SectionConfig> = {
         component: (data: PracticeMaterial[]) => <TabbedPracticeItemList items={data} />,
         isList: true,
     },
-    modeSpotlight: {
-        title: 'Mode Spotlight',
-        description: 'Explore a related mode to expand your melodic options.',
-        icon: <GlobeIcon />,
-        component: (data) => <ModeSpotlightSection modeSpotlight={data} />,
-    },
 };
 
 const ScaleExplorer: React.FC<ScaleExplorerProps> = (props) => {
@@ -141,20 +120,19 @@ const ScaleExplorer: React.FC<ScaleExplorerProps> = (props) => {
         isSustainOn,
         onSustainToggle,
         onPianoKeyClick,
-        isPlaygroundMode,
-        onPlaygroundModeChange
     } = props;
     
     if (!clientData) {
-        const errorSection = Object.values(loadingState.sections).find(s => s.status === 'error');
-        if (loadingState.status === 'error' && errorSection) {
-            return <Card><p className="text-red-400 text-center p-4">{errorSection.error}</p></Card>;
+        // Use a more specific error check
+        const firstError = Object.values(loadingState.sections).find((s: SectionState<any>) => s.status === 'error');
+        if (loadingState.status === 'error' && firstError) {
+             return <Card><p className="text-red-400 text-center p-4">{firstError.error}</p></Card>;
         }
         return <WelcomeState />;
     }
 
     const { sections, isActive } = loadingState;
-    const { diagramData, degreeExplanation, keyChords } = clientData;
+    const { diagramData, keyChords } = clientData;
 
     const renderSection = (key: SectionKey) => {
         const config = sectionConfig[key];
@@ -187,7 +165,7 @@ const ScaleExplorer: React.FC<ScaleExplorerProps> = (props) => {
                 return null; // Don't show empty lists
             }
             if (state.data) {
-                return config.component(state.data, { degreeExplanation });
+                return config.component(state.data);
             }
         }
         return null;
@@ -195,27 +173,20 @@ const ScaleExplorer: React.FC<ScaleExplorerProps> = (props) => {
 
     return (
         <div className="space-y-8">
-            <Section title="Overview & Fretboard" icon={<BookOpenIcon />} id={sectionIds.overview}>
-                {renderSection('overview')}
-                <div className="mt-8">
-                    <DiagramsSection
-                        diagramData={diagramData}
-                        fontSize={fontSize}
-                        rootNote={rootNote}
-                        scaleName={scaleName}
-                        highlightedNotes={highlightedNotes}
-                        highlightedPitch={highlightedPitch}
-                        onNoteClick={onNoteClick}
-                        clientData={clientData}
-                        clickedNote={clickedNote}
-                        isSustainOn={isSustainOn}
-                        onSustainToggle={onSustainToggle}
-                        onPianoKeyClick={onPianoKeyClick}
-                        isPlaygroundMode={isPlaygroundMode}
-                        onPlaygroundModeChange={onPlaygroundModeChange}
-                    />
-                </div>
-            </Section>
+            <DiagramsSection
+                diagramData={diagramData}
+                fontSize={fontSize}
+                rootNote={rootNote}
+                scaleName={scaleName}
+                highlightedNotes={highlightedNotes}
+                highlightedPitch={highlightedPitch}
+                onNoteClick={onNoteClick}
+                clientData={clientData}
+                clickedNote={clickedNote}
+                isSustainOn={isSustainOn}
+                onSustainToggle={onSustainToggle}
+                onPianoKeyClick={onPianoKeyClick}
+            />
 
             <Section title="Core Theory & Harmony" icon={<SparklesIcon />} id={sectionIds.harmony}>
                 <KeyChordsSection
@@ -235,18 +206,12 @@ const ScaleExplorer: React.FC<ScaleExplorerProps> = (props) => {
                 </div>
             </Section>
 
-             <Section title="Resources & Tone" icon={<GlobeIcon />} id={sectionIds.resources}>
+             <Section title="Resources" icon={<GlobeIcon />} id={sectionIds.resources}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {renderSection('listeningGuide')}
                     {renderSection('youtubeTutorials')}
                     {renderSection('creativeApplication')}
                     {renderSection('jamTracks')}
-                </div>
-                <div className="mt-8">
-                     {renderSection('toneAndGear')}
-                </div>
-                 <div className="mt-8">
-                    {renderSection('modeSpotlight')}
                 </div>
             </Section>
         </div>

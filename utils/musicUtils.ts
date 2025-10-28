@@ -1,4 +1,6 @@
-import { TUNING, NOTE_MAP, ALL_NOTES } from '../constants';
+
+import { TUNING, NOTE_MAP, ALL_NOTES, NUM_FRETS } from '../constants';
+import type { DiagramNote, ClickedNote } from '../types';
 
 // Standard tuning for a 7-string guitar with scientific pitch notation octaves
 const TUNING_WITH_OCTAVES: { note: string, octave: number }[] = [
@@ -49,4 +51,26 @@ export const getNoteFromFret = (stringIndex: number, fret: number): { noteName: 
     const noteName = ALL_NOTES[noteIndex];
 
     return { noteName, octave: getOctaveForNote(stringIndex, fret) };
+};
+
+/**
+ * Finds all occurrences of a specific pitch on the fretboard.
+ * @param pitch The pitch to find.
+ * @returns An array of DiagramNote objects representing the locations of the pitch.
+ */
+export const findPitchOnFretboard = (pitch: ClickedNote): DiagramNote[] => {
+    const locations: DiagramNote[] = [];
+    for (let s = 0; s < TUNING.length; s++) {
+        for (let f = 0; f <= NUM_FRETS; f++) {
+            const currentPitch = getNoteFromFret(s, f);
+            if (currentPitch.noteName === pitch.noteName && currentPitch.octave === pitch.octave) {
+                locations.push({
+                    string: s,
+                    fret: f,
+                    noteName: pitch.noteName,
+                });
+            }
+        }
+    }
+    return locations;
 };
