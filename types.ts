@@ -1,5 +1,6 @@
 
 
+
 export type NoteHighlightState = 'anchor' | 'pitch' | 'tension' | 'characteristic' | 'playback' | 'none';
 
 export interface Song {
@@ -159,7 +160,7 @@ export interface ScaleExplorerProps {
 }
 
 export type LayerType = 'run' | 'positions' | 'inspector';
-export type StudioMode = LayerType | 'anchor' | null;
+export type StudioMode = LayerType | 'anchor' | 'chat' | null;
 
 
 export interface ChordInspectorData {
@@ -194,6 +195,7 @@ export interface FretboardDiagramProps {
     tensionNotes?: string[];
     anchorNote?: DiagramNote | null;
     playbackNote?: DiagramNote | null;
+    isOctaveColorOn?: boolean;
 }
 
 export interface FretboardNoteProps {
@@ -208,6 +210,7 @@ export interface FretboardNoteProps {
     sequenceNumber?: number;
     highlightState: NoteHighlightState;
     onClick?: () => void;
+    fillColor: string;
 }
 
 export interface SongAnalysisResult {
@@ -307,6 +310,10 @@ export interface DisplayOptionsPanelProps {
     numPositions: number;
     selectedPositionIndex: number;
     onPositionChange: (index: number) => void;
+    
+    // Display Toggles
+    isOctaveColorOn: boolean;
+    onOctaveColorToggle: () => void;
 }
 
 export interface PianoKeyboardProps {
@@ -337,8 +344,4 @@ export interface AnchorContextPanelProps {
     isLoading: boolean;
     error: string | null;
     anchorNote: DiagramNote | null;
-}
-
-export interface ChatPanelProps {
-    // For future implementation
 }

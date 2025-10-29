@@ -1,6 +1,7 @@
 
+
 import React, { useState, useRef, useEffect } from 'react';
-import type { DiagramNote, ClientData } from '../../types';
+import type { DiagramNote, ScaleData, ClickedNote } from '../../types';
 import * as geminiService from '../../services/geminiService';
 import { SparklesIcon } from './Icons';
 
@@ -11,16 +12,16 @@ interface ChatMessage {
 
 interface ChatPanelProps {
     onVisualize: (notes: DiagramNote[]) => void;
-    clientData: ClientData;
-    rootNote: string;
-    scaleName: string;
+    scaleData: ScaleData;
+    clickedNote: ClickedNote | null;
 }
 
-const ChatPanel: React.FC<ChatPanelProps> = ({ onVisualize, clientData, rootNote, scaleName }) => {
+const ChatPanel: React.FC<ChatPanelProps> = ({ onVisualize, scaleData, clickedNote }) => {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const { rootNote, scaleName } = scaleData;
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -37,7 +38,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onVisualize, clientData, rootNote
         setIsLoading(true);
 
         try {
-            const response = await geminiService.getFretboardChatResponse(newMessages, clientData, rootNote, scaleName);
+            const response = await geminiService.getFretboardChatResponse(newMessages, scaleData, rootNote, scaleName, clickedNote);
             
             const aiMessage: ChatMessage = { role: 'model', text: response.text };
             setMessages(prev => [...prev, aiMessage]);
@@ -61,9 +62,16 @@ const ChatPanel: React.FC<ChatPanelProps> = ({ onVisualize, clientData, rootNote
                 <span>AI Fretboard Assistant</span>
             </h3>
             <div className="flex-grow overflow-y-auto pr-2 space-y-4 mb-4">
+                {messages.length === 0 && (
+                     <div className="flex justify-start">
+                        <div className="max-w-lg md:max-w-2xl bg-gray-700/50 text-gray-200 p-3 rounded-lg">
+                           Hi! I'm your AI guitar assistant. Ask me anything about the {rootNote} {scaleName} scale, or ask me to show you something on the fretboard!
+                        </div>
+                    </div>
+                )}
                 {messages.map((msg, index) => (
                     <div key={index} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-xs md:max-w-md p-3 rounded-lg ${msg.role === 'user' ? 'bg-cyan-500/80 text-white' : 'bg-gray-700/50 text-gray-200'}`}>
+                        <div className={`max-w-lg md:max-w-2xl p-3 rounded-lg ${msg.role === 'user' ? 'bg-cyan-500/80 text-white' : 'bg-gray-700/50 text-gray-200'}`}>
                            {msg.text}
                         </div>
                     </div>

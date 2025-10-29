@@ -3,7 +3,7 @@ import type { FretboardNoteProps } from '../types';
 import { COLORS } from '../constants';
 
 const FretboardNote: React.FC<FretboardNoteProps> = React.memo(({
-    note, x, y, fontScale, isRoot, layerNotesLookup, studioMode, sequenceNumber, noteDisplayMode, highlightState, onClick
+    note, x, y, fontScale, isRoot, layerNotesLookup, studioMode, sequenceNumber, noteDisplayMode, highlightState, onClick, fillColor
 }) => {
     // FIX: Implement rendering for fretted and muted notes ('x' on a fret).
     if (note.isMuted) {
@@ -20,7 +20,6 @@ const FretboardNote: React.FC<FretboardNoteProps> = React.memo(({
     const isInLayer = layerNotesLookup?.has(noteKey) ?? true; // Default to true if no layer is active
     
     const opacity = isInLayer ? 1.0 : 0.2;
-    const fillColor = isRoot ? COLORS.root : COLORS.tone;
     const textColor = COLORS.bgPrimary;
 
     // Determine the single text to display based on priority

@@ -57,6 +57,16 @@ export const COLORS = {
     anchorNote: '#00BFFF', // DeepSkyBlue for anchor note pulse
 };
 
+export const OCTAVE_COLORS: Record<number, string> = {
+    0: '#581c87', // purple-800
+    1: '#581c87', // purple-800
+    2: '#1d4ed8', // blue-700
+    3: '#047857', // emerald-600
+    4: '#facc15', // yellow-400
+    5: '#f97316', // orange-500
+    6: '#dc2626', // red-600
+};
+
 export const DEGREE_COLORS: Record<string, string> = {
     major: 'bg-sky-500/80 text-sky-100',
     minor: 'bg-purple-500/80 text-purple-100',

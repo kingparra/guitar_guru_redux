@@ -16,6 +16,7 @@ interface ViewModelParams {
     chordInspectorData: ChordInspectorData | null;
     anchorNote: DiagramNote | null;
     selectedAnchorContext: AnchorNoteContext | null;
+    aiNotes: DiagramNote[] | null;
     diagonalRun?: PathDiagramNote[];
     activePath?: PathDiagramNote[] | null;
     playbackNote?: DiagramNote | null;
@@ -32,7 +33,7 @@ export const useFretboardViewModel = (params: ViewModelParams) => {
     const {
         notesOnFretboard, fingering, fretRange, numStrings, studioMode,
         selectedPositionIndex, selectedVoicingIndex, selectedChord, chordInspectorData,
-        anchorNote, selectedAnchorContext, diagonalRun, activePath, playbackNote,
+        anchorNote, selectedAnchorContext, aiNotes, diagonalRun, activePath, playbackNote,
         characteristicDegrees, highlightedNotes, highlightedPitch, tensionNotes, onNoteClick
     } = params;
 
@@ -57,8 +58,11 @@ export const useFretboardViewModel = (params: ViewModelParams) => {
         if (studioMode === 'anchor' && selectedAnchorContext) {
             return new Set(selectedAnchorContext.arpeggioNotes.map(n => `${n.string}_${n.fret}`));
         }
+        if (studioMode === 'chat' && aiNotes) {
+            return new Set(aiNotes.map(n => `${n.string}_${n.fret}`));
+        }
         return undefined;
-    }, [studioMode, diagonalRun, selectedChord, selectedVoicingIndex, chordInspectorData, notesOnFretboard, fingering, selectedPositionIndex, selectedAnchorContext]);
+    }, [studioMode, diagonalRun, selectedChord, selectedVoicingIndex, chordInspectorData, notesOnFretboard, fingering, selectedPositionIndex, selectedAnchorContext, aiNotes]);
 
     const displayNotes = useMemo(() => activePath ? new Set(activePath.map(n => `${n.string}_${n.fret}`)) : activeLayerNotes, [activePath, activeLayerNotes]);
 

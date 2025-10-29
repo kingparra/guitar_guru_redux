@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode, PropsWithChildren } from 'react';
 import type { DiagramNote, PathDiagramNote } from '../types';
 import { playNote } from '../utils/audioUtils';
 import { getOctaveForNote } from '../utils/musicUtils';
@@ -18,7 +19,8 @@ interface TabPlayerContextType extends TabPlayerState {
 
 const TabPlayerContext = createContext<TabPlayerContextType | undefined>(undefined);
 
-export const TabPlayerProvider = ({ children }: { children: ReactNode }) => {
+// FIX: Changed component signature to use React.FC<PropsWithChildren> to correctly type components with children in React 18+.
+export const TabPlayerProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const [state, setState] = useState<TabPlayerState>({
         activePath: null,
         playbackNote: null,

@@ -165,7 +165,34 @@ export interface LoadingState {
     };
 }
 
-export type StudioMode = 'run' | 'positions' | 'inspector' | 'anchor' | null;
+// FIX: Moved AppState interface here to serve as a single source of truth for the app's state shape.
+export interface AppState {
+    rootNote: string;
+    scaleName: string;
+    scaleData: ScaleData | null;
+    loadingState: LoadingState;
+    cache: AppCache;
+    clickedNote: ClickedNote | null;
+    isSustainOn: boolean;
+    highlightedNotes: string[]; // For chord hover
+    highlightedPitch: ClickedNote | null; // For specific note click
+}
+
+// FIX: Moved AppAction type here to centralize all state-related type definitions.
+export type AppAction =
+    | { type: 'SET_ROOT_NOTE'; payload: string }
+    | { type: 'SET_SCALE_NAME'; payload:string }
+    | { type: 'START_GENERATION' }
+    | { type: 'SET_SCALE_DATA'; payload: ScaleData | null }
+    | { type: 'SET_LOADING_STATE'; payload: LoadingState }
+    | { type: 'SET_CACHE'; payload: AppCache }
+    | { type: 'SET_CLICKED_NOTE'; payload: ClickedNote | null }
+    | { type: 'TOGGLE_SUSTAIN' }
+    | { type: 'SET_HIGHLIGHTED_NOTES'; payload: string[] }
+    | { type: 'SET_HIGHLIGHTED_PITCH'; payload: ClickedNote | null };
+
+
+export type StudioMode = 'run' | 'positions' | 'inspector' | 'anchor' | 'chat' | null;
 
 // --- ViewModel Types for Decoupled UI ---
 

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import type { ScaleData, DiagramNote, FretboardNoteViewModel } from '../../types';
 import { FONT_SIZES, NUM_FRETS } from '../../constants';
 import { useAppContext } from '../../contexts/AppContext';
@@ -15,19 +15,30 @@ import DisplayOptionsPanel from '../common/DisplayOptionsPanel';
 import Card from '../common/Card';
 import ChordInspectorPanel from '../common/ChordInspectorPanel';
 import AnchorContextPanel from '../common/AnchorContextPanel';
+import ChatPanel from '../common/ChatPanel';
 
 const DiagramsSection: React.FC<{ scaleData: ScaleData }> = React.memo(({ scaleData }) => {
-    const { rootNote, scaleName, isSustainOn, dispatch, highlightedNotes, highlightedPitch } = useAppContext();
+    const { rootNote, scaleName, isSustainOn, dispatch, highlightedNotes, highlightedPitch, clickedNote } = useAppContext();
     const { activePath, playbackNote, stop: stopPlayback } = useTabPlayer();
     const [fontSize] = React.useState<'M'>('M'); // Assuming fixed font size for now
     const fontScaleValue = parseFloat(FONT_SIZES[fontSize].replace('rem', ''));
     const { diagramData, keyChords } = scaleData;
     const { notesOnFretboard, fingering, diagonalRun, characteristicDegrees } = diagramData;
+    
+    // AI Chat State
+    const [aiNotes, setAiNotes] = useState<DiagramNote[] | null>(null);
 
     const diatonicChordsArray = useMemo(() => Array.from(keyChords.diatonicChords.values()), [keyChords.diatonicChords]);
     const studioModes = useStudioModes(diatonicChordsArray);
     const chordInspector = useChordInspector(studioModes.studioMode, studioModes.selectedChord, rootNote, scaleName);
     const anchorNoteLogic = useAnchorNote(studioModes.studioMode, diatonicChordsArray, notesOnFretboard);
+    
+    // Effect to clear AI notes when mode changes
+    useEffect(() => {
+        if (studioModes.studioMode !== 'chat') {
+            setAiNotes(null);
+        }
+    }, [studioModes.studioMode]);
 
     const handleNoteClick = (note: DiagramNote) => {
         if (!note.noteName) return;
@@ -61,6 +72,7 @@ const DiagramsSection: React.FC<{ scaleData: ScaleData }> = React.memo(({ scaleD
         chordInspectorData: chordInspector.data,
         anchorNote: anchorNoteLogic.anchorNote,
         selectedAnchorContext: anchorNoteLogic.selectedAnchorContext,
+        aiNotes,
         diagonalRun,
         activePath,
         playbackNote,
@@ -102,6 +114,14 @@ const DiagramsSection: React.FC<{ scaleData: ScaleData }> = React.memo(({ scaleD
             {studioModes.studioMode === 'anchor' && (
                 <AnchorContextPanel
                     {...anchorNoteLogic}
+                />
+            )}
+
+            {studioModes.studioMode === 'chat' && (
+                 <ChatPanel
+                    onVisualize={setAiNotes}
+                    scaleData={scaleData}
+                    clickedNote={clickedNote}
                 />
             )}
         </div>

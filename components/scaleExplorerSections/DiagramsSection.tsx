@@ -1,5 +1,7 @@
 
 
+
+
 import React, { useMemo, useState, useEffect } from 'react';
 // FIX: Import Chord type to be used in the client-side logic.
 import type { DiagramsSectionProps, StudioMode, ChordInspectorData, AnchorNoteContext, DiagramNote, Chord, ClickedNote } from '../../types';
@@ -25,11 +27,14 @@ const DiagramsSection: React.FC<DiagramsSectionProps> = React.memo(({
 
     // Studio Mode State
     const [studioMode, setStudioMode] = useState<StudioMode>(null);
+    const [isOctaveColorOn, setIsOctaveColorOn] = useState(false);
     
     // Layer-specific state
     const [selectedChordName, setSelectedChordName] = useState<string | null>(null);
     const [selectedPositionIndex, setSelectedPositionIndex] = useState(0);
     const [selectedVoicingIndex, setSelectedVoicingIndex] = useState(-1); // -1 signifies "All Chord Tones" view
+    const [aiNotes, setAiNotes] = useState<DiagramNote[] | null>(null);
+
 
     // Anchor Note State
     const [anchorNote, setAnchorNote] = useState<DiagramNote | null>(null);
@@ -44,7 +49,8 @@ const DiagramsSection: React.FC<DiagramsSectionProps> = React.memo(({
     const [inspectorError, setInspectorError] = useState<string | null>(null);
 
     // Derived Data
-    const diatonicChords = useMemo(() => Array.from(clientData.keyChords.diatonicChords.values()), [clientData]);
+    // FIX: Explicitly type diatonicChords as Chord[] to fix downstream type inference issues.
+    const diatonicChords: Chord[] = useMemo(() => Array.from(clientData.keyChords.diatonicChords.values()), [clientData]);
     const selectedChord = useMemo(() => diatonicChords.find(c => c.name === selectedChordName) || null, [selectedChordName, diatonicChords]);
 
     // Handler for chord change, which also resets voicing index to the "All Tones" view
@@ -72,7 +78,8 @@ const DiagramsSection: React.FC<DiagramsSectionProps> = React.memo(({
                     const { scaleNotes } = clientData;
                     const parentScaleNotes = new Set(scaleNotes.map(n => n.noteName));
                     const chordTones = selectedChord.triadNotes;
-                    const scaleTones = Array.from(parentScaleNotes).filter(note => !chordTones.includes(note));
+                    // FIX: Explicitly typing `note` as string to fix type inference issue where it becomes `unknown`.
+                    const scaleTones = [...parentScaleNotes].filter((note: string) => !chordTones.includes(note)) as string[];
 
                     const chordRootIndex = NOTE_MAP[chordTones[0]];
                     const tensionNotes: string[] = [];
@@ -138,6 +145,9 @@ const DiagramsSection: React.FC<DiagramsSectionProps> = React.memo(({
         if (studioMode !== 'anchor') {
             setAnchorNote(null);
         }
+        if (studioMode !== 'chat') {
+            setAiNotes(null);
+        }
     }, [studioMode, diatonicChords, selectedChordName]);
 
     const handleNoteClickForStudio = (note: DiagramNote) => {
@@ -168,8 +178,11 @@ const DiagramsSection: React.FC<DiagramsSectionProps> = React.memo(({
         if (studioMode === 'anchor' && selectedAnchorContext) {
             return new Set(selectedAnchorContext.arpeggioNotes.map(n => `${n.string}_${n.fret}`));
         }
+        if (studioMode === 'chat' && aiNotes) {
+            return new Set(aiNotes.map(n => `${n.string}_${n.fret}`));
+        }
         return undefined; 
-    }, [studioMode, diagonalRun, selectedChord, selectedVoicingIndex, inspectorData, notesOnFretboard, fingering, selectedPositionIndex, selectedAnchorContext]);
+    }, [studioMode, diagonalRun, selectedChord, selectedVoicingIndex, inspectorData, notesOnFretboard, fingering, selectedPositionIndex, selectedAnchorContext, aiNotes]);
     
     // Consolidate active notes for dimming effect, prioritizing exercise playback
     const activeNotes = useMemo(() => {
@@ -219,6 +232,8 @@ const DiagramsSection: React.FC<DiagramsSectionProps> = React.memo(({
                 return 'finger';
             case 'anchor':
                 return 'degree';
+            case 'chat':
+                return 'noteName';
             default:
                 return 'noteName';
         }
@@ -247,6 +262,7 @@ const DiagramsSection: React.FC<DiagramsSectionProps> = React.memo(({
                     barres={studioMode === 'inspector' && selectedVoicingIndex >= 0 ? selectedChord?.voicings[selectedVoicingIndex]?.barres : undefined}
                     openStrings={studioMode === 'inspector' && selectedVoicingIndex >= 0 ? selectedChord?.voicings[selectedVoicingIndex]?.openStrings : undefined}
                     mutedStrings={studioMode === 'inspector' && selectedVoicingIndex >= 0 ? selectedChord?.voicings[selectedVoicingIndex]?.mutedStrings : undefined}
+                    isOctaveColorOn={isOctaveColorOn}
                 />
             </Card>
 
@@ -260,6 +276,8 @@ const DiagramsSection: React.FC<DiagramsSectionProps> = React.memo(({
                 numPositions={diagramData.fingering.length}
                 selectedPositionIndex={selectedPositionIndex}
                 onPositionChange={setSelectedPositionIndex}
+                isOctaveColorOn={isOctaveColorOn}
+                onOctaveColorToggle={() => setIsOctaveColorOn(prev => !prev)}
             />
             
             {studioMode === 'inspector' && (
@@ -281,6 +299,15 @@ const DiagramsSection: React.FC<DiagramsSectionProps> = React.memo(({
                     isLoading={isAnchorContextLoading}
                     error={anchorContextError}
                     anchorNote={anchorNote}
+                />
+            )}
+
+            {studioMode === 'chat' && (
+                <ChatPanel
+                    onVisualize={setAiNotes}
+                    clientData={clientData}
+                    rootNote={rootNote}
+                    scaleName={scaleName}
                 />
             )}
         </div>

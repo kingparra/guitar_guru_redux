@@ -1,7 +1,14 @@
 
 
 import React from 'react';
-import type { DisplayOptionsPanelProps, StudioMode } from '../../types';
+import type { StudioMode } from '../../types';
+import type { useStudioModes } from '../../hooks/useStudioModes';
+
+interface DisplayOptionsPanelProps extends ReturnType<typeof useStudioModes> {
+    hasRun: boolean;
+    numPositions: number;
+}
+
 
 const ModeButton: React.FC<{
     label: string;
@@ -25,16 +32,12 @@ const ModeButton: React.FC<{
 
 
 const DisplayOptionsPanel: React.FC<DisplayOptionsPanelProps> = ({
-    studioMode, onModeChange,
-    selectedChordName, onChordChange, diatonicChords, hasRun,
-    numPositions, selectedPositionIndex, onPositionChange,
-    isOctaveColorOn, onOctaveColorToggle,
+    studioMode, setStudioMode,
+    selectedChordName, onChordChange, diatonicChords,
+    selectedPositionIndex, onPositionChange,
+    hasRun, numPositions,
 }) => {
     
-    const handleModeChange = (mode: StudioMode) => {
-        onModeChange(studioMode === mode ? null : mode);
-    };
-
     const handlePrevPosition = () => {
         onPositionChange((selectedPositionIndex - 1 + numPositions) % numPositions);
     };
@@ -48,38 +51,30 @@ const DisplayOptionsPanel: React.FC<DisplayOptionsPanelProps> = ({
                 <ModeButton
                     label="Anchor Note"
                     isActive={studioMode === 'anchor'}
-                    onClick={() => handleModeChange('anchor')}
+                    onClick={() => setStudioMode('anchor')}
                 />
                 <ModeButton
                     label="Diagonal Run"
                     isActive={studioMode === 'run'}
-                    onClick={() => handleModeChange('run')}
+                    onClick={() => setStudioMode('run')}
                     disabled={!hasRun}
                 />
                 <ModeButton
                     label="Chord Inspector"
                     isActive={studioMode === 'inspector'}
-                    onClick={() => handleModeChange('inspector')}
+                    onClick={() => setStudioMode('inspector')}
                     disabled={diatonicChords.length === 0}
                 />
                 <ModeButton
                     label="Scale Positions"
                     isActive={studioMode === 'positions'}
-                    onClick={() => handleModeChange('positions')}
+                    onClick={() => setStudioMode('positions')}
                     disabled={numPositions === 0}
                 />
-                 <ModeButton
+                <ModeButton
                     label="AI Chat"
                     isActive={studioMode === 'chat'}
-                    onClick={() => handleModeChange('chat')}
-                />
-            </div>
-            
-            <div className="border-t border-purple-400/20 pt-4 flex items-center justify-center gap-x-4">
-                 <ModeButton
-                    label="Octave Color"
-                    isActive={isOctaveColorOn}
-                    onClick={onOctaveColorToggle}
+                    onClick={() => setStudioMode('chat')}
                 />
             </div>
 

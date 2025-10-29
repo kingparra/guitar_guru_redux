@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
-import type { LoadingState, SectionKey, ScaleData, AppCache } from '../types';
+// FIX: Import types from the correct central types file. This will work once AppState and AppAction are moved there.
+import type { LoadingState, SectionKey, ScaleData, AppCache, AppAction, AppState, SectionState } from '../types';
 import { ScaleGenerationService } from '../services/ScaleGenerationService';
 import { FallbackService } from '../services/FallbackService';
 
@@ -20,14 +21,8 @@ const createInitialSectionState = (): LoadingState['sections'] => {
  * calculations and AI-powered content fetching.
  */
 export const useScaleGenerator = (
-    state: {
-        cache: AppCache;
-        rootNote: string;
-        scaleName: string;
-        scaleData: ScaleData | null;
-        loadingState: LoadingState;
-    },
-    dispatch: React.Dispatch<any>
+    state: AppState,
+    dispatch: React.Dispatch<AppAction>
 ) => {
     const { cache, rootNote, scaleName, scaleData, loadingState } = state;
 
@@ -102,7 +97,8 @@ export const useScaleGenerator = (
         }
 
         updateLoadingState(prev => {
-            const stillLoading = Object.values(prev.sections).some(s => s.status === 'loading');
+            // FIX: Cast `s` to `SectionState<any>` to resolve type error when accessing `s.status`.
+            const stillLoading = Object.values(prev.sections).some((s: SectionState<any>) => s.status === 'loading');
             return { ...prev, isActive: stillLoading, status: stillLoading ? 'generating' : 'success' };
         });
     }, [rootNote, scaleName, scaleData, setCache, updateLoadingState]);

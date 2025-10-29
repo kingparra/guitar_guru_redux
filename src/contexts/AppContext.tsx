@@ -1,30 +1,8 @@
-import React, { createContext, useContext, useReducer, ReactNode, useCallback } from 'react';
-import type { ScaleData, LoadingState, ClickedNote, SectionKey, AppCache } from '../types';
+
+import React, { createContext, useContext, useReducer, ReactNode, useCallback, PropsWithChildren } from 'react';
+// FIX: Import AppState and AppAction, which are now defined in the central types file.
+import type { ScaleData, LoadingState, ClickedNote, SectionKey, AppCache, AppState, AppAction } from '../types';
 import { useScaleGenerator } from '../hooks/useScaleGenerator';
-
-interface AppState {
-    rootNote: string;
-    scaleName: string;
-    scaleData: ScaleData | null;
-    loadingState: LoadingState;
-    cache: AppCache;
-    clickedNote: ClickedNote | null;
-    isSustainOn: boolean;
-    highlightedNotes: string[]; // For chord hover
-    highlightedPitch: ClickedNote | null; // For specific note click
-}
-
-type AppAction =
-    | { type: 'SET_ROOT_NOTE'; payload: string }
-    | { type: 'SET_SCALE_NAME'; payload:string }
-    | { type: 'START_GENERATION' }
-    | { type: 'SET_SCALE_DATA'; payload: ScaleData | null }
-    | { type: 'SET_LOADING_STATE'; payload: LoadingState }
-    | { type: 'SET_CACHE'; payload: AppCache }
-    | { type: 'SET_CLICKED_NOTE'; payload: ClickedNote | null }
-    | { type: 'TOGGLE_SUSTAIN' }
-    | { type: 'SET_HIGHLIGHTED_NOTES'; payload: string[] }
-    | { type: 'SET_HIGHLIGHTED_PITCH'; payload: ClickedNote | null };
 
 const initialLoadingState: LoadingState = {
     isActive: false,
@@ -75,7 +53,8 @@ interface AppContextType extends AppState {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppContextProvider = ({ children }: { children: ReactNode }) => {
+// FIX: Changed component signature to use React.FC<PropsWithChildren> to correctly type components with children in React 18+.
+export const AppContextProvider: React.FC<PropsWithChildren> = ({ children }) => {
     const [state, dispatch] = useReducer(appReducer, initialState);
 
     const { generate, generateSection } = useScaleGenerator(

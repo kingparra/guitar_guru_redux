@@ -1,7 +1,8 @@
 
+
 import React, { useMemo } from 'react';
 import type { FretboardDiagramProps, DiagramNote, Barre, PathDiagramNote, ClickedNote, NoteHighlightState } from '../types';
-import { FRET_MARKERS, COLORS, TUNING } from '../constants';
+import { FRET_MARKERS, COLORS, TUNING, OCTAVE_COLORS } from '../constants';
 import { useFretboardLayout } from '../hooks/useFretboardLayout';
 import FretboardNote from './FretboardNote';
 import { getOctaveForNote, getNoteFromFret } from '../utils/musicUtils';
@@ -227,7 +228,7 @@ const SvgClickTargets: React.FC<{
 const FretboardDiagram: React.FC<FretboardDiagramProps> = ({
     title, frettedNotes, chromaticNotes = [], characteristicDegrees, fretRange, noteDisplayMode = 'noteName',
     diagonalRun, barres, openStrings, mutedStrings, fontScale = 1.0, numStrings = 7, highlightedNotes, highlightedPitch, onNoteClick,
-    studioMode, activeLayerNotes, tensionNotes, anchorNote, playbackNote
+    studioMode, activeLayerNotes, tensionNotes, anchorNote, playbackNote, isOctaveColorOn
 }) => {
     const layout = useFretboardLayout(fretRange, numStrings);
     const { diagramWidth, diagramHeight, fretWidth, getX, getY, LABEL_COL_WIDTH, FRET_NUM_HEIGHT, fretsToRender, paddingX, fretHeight } = layout;
@@ -285,6 +286,7 @@ const FretboardDiagram: React.FC<FretboardDiagramProps> = ({
                         const handleClick = onNoteClick ? () => onNoteClick(note) : undefined;
                         
                         const octave = getOctaveForNote(note.string, fret);
+                        const isRoot = note.degree === 'R';
                         const isPitchHighlighted = !!(highlightedPitch && highlightedPitch.noteName === note.noteName && highlightedPitch.octave === octave);
                         const isNoteNameHighlighted = highlightedNotes?.includes(note.noteName ?? '');
                         const isAnchor = !!(anchorNote && anchorNote.string === note.string && anchorNote.fret === note.fret);
@@ -312,6 +314,13 @@ const FretboardDiagram: React.FC<FretboardDiagramProps> = ({
                             highlightState = 'playback';
                         }
                         
+                        let fillColor;
+                        if (isOctaveColorOn) {
+                            fillColor = OCTAVE_COLORS[octave] || (octave < 1 ? OCTAVE_COLORS[0] : OCTAVE_COLORS[6]);
+                        } else {
+                            fillColor = isRoot ? COLORS.root : COLORS.tone;
+                        }
+                        
                         return (
                             <FretboardNote 
                                 key={`${noteKey}-${index}`} 
@@ -319,13 +328,14 @@ const FretboardDiagram: React.FC<FretboardDiagramProps> = ({
                                 x={getX(fret)} 
                                 y={getY(note.string)} 
                                 fontScale={fontScale} 
-                                isRoot={note.degree === 'R'} 
+                                isRoot={isRoot} 
                                 sequenceNumber={runSequenceLookup.get(noteKey)} 
                                 noteDisplayMode={noteDisplayMode} 
                                 onClick={handleClick}
                                 layerNotesLookup={activeLayerNotes}
                                 studioMode={studioMode}
                                 highlightState={highlightState}
+                                fillColor={fillColor}
                             />
                         );
                     })}
