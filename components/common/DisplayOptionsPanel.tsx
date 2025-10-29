@@ -33,6 +33,13 @@ const DisplayOptionsPanel: React.FC<DisplayOptionsPanelProps> = ({
         onModeChange(studioMode === mode ? null : mode);
     };
 
+    const handlePrevPosition = () => {
+        onPositionChange((selectedPositionIndex - 1 + numPositions) % numPositions);
+    };
+    const handleNextPosition = () => {
+        onPositionChange((selectedPositionIndex + 1) % numPositions);
+    };
+
     return (
         <div className="bg-black/20 p-4 rounded-lg border border-purple-400/20 space-y-4">
              <div className="flex flex-row items-center justify-center gap-x-4 gap-y-2 flex-wrap">
@@ -81,19 +88,19 @@ const DisplayOptionsPanel: React.FC<DisplayOptionsPanelProps> = ({
                 </div>
             )}
             
-            {studioMode === 'positions' && (
-                 <div className="animate-fade-in border-t border-purple-400/20 pt-4 flex justify-center">
-                    <select
-                        value={selectedPositionIndex}
-                        onChange={(e) => onPositionChange(parseInt(e.target.value, 10))}
-                        className="bg-[#171528]/80 border border-purple-400/30 rounded-md p-2 text-white font-semibold focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
-                    >
-                        {Array.from({ length: numPositions }).map((_, index) => (
-                             <option key={index} value={index}>
-                                Position {index + 1}
-                            </option>
-                        ))}
-                    </select>
+            {studioMode === 'positions' && numPositions > 0 && (
+                 <div className="animate-fade-in border-t border-purple-400/20 pt-4">
+                    <div className="flex items-center justify-center gap-4 flex-shrink-0">
+                        <button type="button" onClick={handlePrevPosition} className="px-4 py-2 rounded-md bg-purple-500/20 hover:bg-purple-500/40 text-gray-200 font-semibold transition-colors">
+                            &larr; Prev
+                        </button>
+                        <p className="font-bold text-gray-300 w-32 text-center">
+                            Position {selectedPositionIndex + 1} / {numPositions}
+                        </p>
+                        <button type="button" onClick={handleNextPosition} className="px-4 py-2 rounded-md bg-purple-500/20 hover:bg-purple-500/40 text-gray-200 font-semibold transition-colors">
+                            Next &rarr;
+                        </button>
+                    </div>
                 </div>
             )}
         </div>

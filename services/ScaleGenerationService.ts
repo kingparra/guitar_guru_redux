@@ -1,9 +1,11 @@
+
+
+
 import * as geminiService from './geminiService';
 import type {
     Result,
     SectionKey,
     ClientData,
-    HarmonizationExercise,
     DiagramData,
 } from '../types';
 import {
@@ -19,21 +21,7 @@ import {
 } from '../utils/guitarUtils';
 
 
-type Hydrator = (data: any, clientData: ClientData) => any;
-
-const hydrateAdvancedHarmonization: Hydrator = (data, clientData) => {
-    if (Array.isArray(data)) {
-        data.forEach((ex: HarmonizationExercise) => {
-            const interval = ex.description.toLowerCase().includes('third') ? 2 : 5;
-            ex.tab = generateHarmonizationTab(clientData.fingering, clientData.scaleNotes, interval);
-        });
-    }
-    return data;
-};
-
-const hydrators: Partial<Record<SectionKey, Hydrator>> = {
-    advancedHarmonization: hydrateAdvancedHarmonization,
-};
+// FIX: Removed unused Hydrator type and related functions for a deprecated feature.
 
 export class ScaleGenerationService {
     public static generateClientData(rootNote: string, scaleName: string): Result<ClientData, Error> {
@@ -80,13 +68,23 @@ export class ScaleGenerationService {
     ): Promise<Result<any, Error>> {
         const { rootNote, scaleName, clientData } = context;
         try {
-            const serviceFunction = (geminiService as any)[`generate${sectionKey.charAt(0).toUpperCase() + sectionKey.slice(1)}`];
+            const serviceFunctionName = `generate${sectionKey.charAt(0).toUpperCase() + sectionKey.slice(1)}`;
+            const serviceFunction = (geminiService as any)[serviceFunctionName];
+            
+            if (!serviceFunction) {
+                throw new Error(`No AI service function found for section key: ${sectionKey}`);
+            }
+
+            // Special handling for creative exercises to pass the full note data
+            if (sectionKey === 'arpeggioEtude' || sectionKey === 'motifEtude') {
+                const data = await serviceFunction(rootNote, scaleName, clientData.diagramData.notesOnFretboard);
+                return { type: 'success', value: data };
+            }
+            
             const data = await serviceFunction(rootNote, scaleName);
             
-            const hydrator = hydrators[sectionKey];
-            const hydratedData = hydrator ? hydrator(data, clientData) : data;
-
-            return { type: 'success', value: hydratedData };
+            // FIX: Removed hydration logic as the feature it supported was removed.
+            return { type: 'success', value: data };
         } catch (e: unknown) {
             const error = e instanceof Error ? e : new Error(`Failed to generate section: ${sectionKey}`);
             return { type: 'failure', error };

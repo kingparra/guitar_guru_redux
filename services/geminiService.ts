@@ -1,93 +1,82 @@
-
-// MOCK IMPLEMENTATION - This file is currently using mock data to avoid API rate limiting.
-// To switch to the live API, you would replace the mock imports and function bodies
-// with the commented-out real implementations.
-
+import { GoogleGenAI } from '@google/genai';
 import type {
-    Song, Tutorial, CreativeVideo, JamTrack, Lick, 
-    HarmonizationExercise, Etude, SongAnalysisResult,
-    ChordInspectorData, AnchorNoteContext, Chord, ClickedNote
+    Song, Tutorial, CreativeVideo, JamTrack,
+    SongAnalysisResult, CreativeExercise, DiagramNote
 } from '../types';
-import { 
-    MOCK_LISTENING_GUIDE, MOCK_YOUTUBE_TUTORIALS, 
-    MOCK_CREATIVE_APPLICATION, MOCK_JAM_TRACKS, 
-    MOCK_LICKS, MOCK_HARMONIZATION, MOCK_ETUDES,
-    MOCK_ANALYSIS_TEXT, MOCK_CHORD_INSPECTOR_DATA,
-    MOCK_ANCHOR_CONTEXTS
-} from './mockData';
+import { getArpeggioEtudePrompt, getMotifEtudePrompt, getListeningGuidePrompt, getYoutubeTutorialsPrompt, getCreativeApplicationPrompt, getJamTracksPrompt } from './prompts';
 
-// Helper to simulate network latency
-const FAKE_DELAY = () => new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 800));
-
-// --- MOCKED API FUNCTIONS ---
-export const generateListeningGuide = async (rootNote: string, scaleName: string): Promise<Song[]> => {
-    await FAKE_DELAY();
-    return MOCK_LISTENING_GUIDE;
-};
-
-export const generateYoutubeTutorials = async (rootNote: string, scaleName: string): Promise<Tutorial[]> => {
-    await FAKE_DELAY();
-    return MOCK_YOUTUBE_TUTORIALS;
-};
-
-export const generateCreativeApplication = async (rootNote: string, scaleName: string): Promise<CreativeVideo[]> => {
-    await FAKE_DELAY();
-    return MOCK_CREATIVE_APPLICATION;
-};
-
-export const generateJamTracks = async (rootNote: string, scaleName: string): Promise<JamTrack[]> => {
-    await FAKE_DELAY();
-    return MOCK_JAM_TRACKS;
-};
-
-export const generateLicks = async (rootNote: string, scaleName: string): Promise<Lick[]> => {
-    await FAKE_DELAY();
-    return MOCK_LICKS;
-};
-
-export const generateAdvancedHarmonization = async (rootNote: string, scaleName: string): Promise<HarmonizationExercise[]> => {
-    await FAKE_DELAY();
-    return MOCK_HARMONIZATION;
-};
-
-export const generateEtudes = async (rootNote: string, scaleName: string): Promise<Etude[]> => {
-    await FAKE_DELAY();
-    return MOCK_ETUDES;
-};
-
-export const generateChordProgressionAnalysis = async (rootNote: string, scaleName: string, progressionAnalysis: string): Promise<string> => {
-    await FAKE_DELAY();
-    return MOCK_ANALYSIS_TEXT;
-};
-
-export const generateChordInspectorData = async (rootNote: string, scaleName: string, chord: Chord): Promise<ChordInspectorData> => {
-    await FAKE_DELAY();
-    console.log(`MOCK: Generating Chord Inspector data for ${chord.name} in ${rootNote} ${scaleName}`);
-    return MOCK_CHORD_INSPECTOR_DATA;
-}
-
-export const generateAnchorNoteContexts = async (rootNote: string, scaleName: string, anchorNote: ClickedNote, diatonicChords: Chord[]): Promise<AnchorNoteContext[]> => {
-    await FAKE_DELAY();
-    console.log(`MOCK: Generating Anchor Note contexts for ${anchorNote.noteName}${anchorNote.octave} in ${rootNote} ${scaleName}`);
-    return MOCK_ANCHOR_CONTEXTS;
-};
-
-// This function would remain a real API call as it's user-initiated.
-export const analyzeMusicNotationImage = async (imageData: string, mimeType: string): Promise<SongAnalysisResult[]> => {
-    await FAKE_DELAY();
-    // This is mocked to return two valid results for demonstration.
-    return [
-        {
-            rootNote: 'A',
-            scaleName: 'Natural Minor',
-            analysis: 'The key signature of G major and the frequent use of A as a tonal center strongly suggest A Aeolian mode, which is the natural minor scale.',
-            suitability: 'Primary Match'
+const callApi = async <T>(prompt: string): Promise<T> => {
+    if (!process.env.API_KEY) {
+        throw new Error('API_KEY environment variable not set');
+    }
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    
+    const response = await ai.models.generateContent({
+        model: 'gemini-1.5-pro-latest',
+        contents: prompt,
+        config: {
+            responseMimeType: 'application/json',
         },
-        {
-            rootNote: 'A',
-            scaleName: 'Minor Pentatonic',
-            analysis: 'This scale is a subset of A Natural Minor and will work well over the chord changes, providing a more bluesy and open sound.',
-            suitability: 'Creative Alternative'
-        }
-    ];
+    });
+
+    const jsonText = response.text.trim();
+    try {
+        return JSON.parse(jsonText) as T;
+    } catch (e) {
+        console.error("Failed to parse AI response:", jsonText);
+        throw new Error("The AI returned an invalid JSON response. Please try again.");
+    }
+};
+
+
+export const generateListeningGuide = (rootNote: string, scaleName: string): Promise<Song[]> => {
+    return callApi<Song[]>(getListeningGuidePrompt(rootNote, scaleName));
+};
+
+export const generateYoutubeTutorials = (rootNote: string, scaleName: string): Promise<Tutorial[]> => {
+    return callApi<Tutorial[]>(getYoutubeTutorialsPrompt(rootNote, scaleName));
+};
+
+export const generateCreativeApplication = (rootNote: string, scaleName: string): Promise<CreativeVideo[]> => {
+    return callApi<CreativeVideo[]>(getCreativeApplicationPrompt(rootNote, scaleName));
+};
+
+export const generateJamTracks = (rootNote: string, scaleName: string): Promise<JamTrack[]> => {
+    return callApi<JamTrack[]>(getJamTracksPrompt(rootNote, scaleName));
+};
+
+export const generateArpeggioEtude = (rootNote: string, scaleName: string, notesOnFretboard: DiagramNote[]): Promise<CreativeExercise> => {
+    const prompt = getArpeggioEtudePrompt(rootNote, scaleName, notesOnFretboard);
+    return callApi<CreativeExercise>(prompt);
+};
+
+export const generateMotifEtude = (rootNote: string, scaleName: string, notesOnFretboard: DiagramNote[]): Promise<CreativeExercise> => {
+    const prompt = getMotifEtudePrompt(rootNote, scaleName, notesOnFretboard);
+    return callApi<CreativeExercise>(prompt);
+};
+
+export const analyzeMusicNotationImage = async (imageData: string, mimeType: string): Promise<SongAnalysisResult[]> => {
+    if (!process.env.API_KEY) {
+        throw new Error('API_KEY environment variable not set');
+    }
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+    const imagePart = { inlineData: { data: imageData, mimeType } };
+    const textPart = { text: "Analyze this music notation and suggest guitar scales. Adhere to the specified JSON schema." };
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-1.5-pro-latest',
+        contents: { parts: [textPart, imagePart] },
+         config: {
+            responseMimeType: 'application/json',
+        },
+    });
+
+    try {
+        const jsonText = response.text.trim();
+        return JSON.parse(jsonText) as SongAnalysisResult[];
+    } catch (e) {
+        console.error("Failed to parse AI response for image analysis:", response.text);
+        throw new Error("The AI returned an invalid response for the image analysis.");
+    }
 };

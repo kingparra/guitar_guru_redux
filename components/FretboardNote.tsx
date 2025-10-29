@@ -1,73 +1,68 @@
-
 import React from 'react';
 import type { FretboardNoteProps } from '../types';
 import { COLORS } from '../constants';
 
 const FretboardNote: React.FC<FretboardNoteProps> = React.memo(({
-    note, x, y, fontScale, isRoot, isCharacteristic, layerNotesLookup, studioMode, sequenceNumber, noteDisplayMode, highlightedNotes, isPitchHighlighted, isTension, isAnchor, onClick
+    note, x, y, fontScale, isRoot, layerNotesLookup, studioMode, sequenceNumber, noteDisplayMode, highlightState, onClick
 }) => {
-    const baseMarkerRadius = 22; 
-    const noteFontSize = 16; 
-    const r = (isRoot ? baseMarkerRadius : baseMarkerRadius - 1) * fontScale;
-    
-    const noteKey = `${note.string}_${note.fret}`;
-    let isInLayer: boolean;
-
-    if (studioMode === 'inspector' && layerNotesLookup) {
-        isInLayer = layerNotesLookup.has(note.noteName || '');
-    } else if (studioMode === 'anchor' && layerNotesLookup) {
-        isInLayer = layerNotesLookup.has(noteKey);
-    }
-     else if (layerNotesLookup) {
-        isInLayer = layerNotesLookup.has(noteKey);
-    } else {
-        isInLayer = false;
-    }
-    
-    const opacity = layerNotesLookup ? (isInLayer ? 1.0 : 0.2) : 1.0;
-    const fillColor = isRoot ? COLORS.root : COLORS.tone;
-    const textColor = COLORS.bgPrimary;
-
-    const isNoteNameHighlighted = highlightedNotes?.includes(note.noteName ?? '');
-
-    let mainText = '';
-    let subText = '';
-
-    if (layerNotesLookup && !isInLayer && !isTension) {
-        mainText = note.noteName ?? '';
-    } else {
-        switch (noteDisplayMode) {
-            case 'sequence': 
-                mainText = sequenceNumber?.toString() ?? ''; 
-                break;
-            case 'degree': 
-                mainText = note.degree ?? ''; 
-                break;
-            case 'finger': 
-                mainText = note.finger ?? ''; 
-                subText = note.degree ?? '';
-                break;
-            default: // noteName
-                mainText = note.noteName ?? ''; 
-                subText = note.degree ?? '';
-                break;
-        }
-    }
-
-
-    if (note.fret === 'x') {
+    // FIX: Implement rendering for fretted and muted notes ('x' on a fret).
+    if (note.isMuted) {
         return (
              <text x={x} y={y} dy="0.35em" fontSize={30 * fontScale} fill={COLORS.textSecondary} textAnchor="middle" fontWeight="bold">x</text>
         )
     }
+    
+    const baseMarkerRadius = 22; 
+    const noteFontSize = 18; // Slightly larger font for single text
+    const r = (isRoot ? baseMarkerRadius : baseMarkerRadius - 1) * fontScale;
+    
+    const noteKey = `${note.string}_${note.fret}`;
+    const isInLayer = layerNotesLookup?.has(noteKey) ?? true; // Default to true if no layer is active
+    
+    const opacity = isInLayer ? 1.0 : 0.2;
+    const fillColor = isRoot ? COLORS.root : COLORS.tone;
+    const textColor = COLORS.bgPrimary;
+
+    // Determine the single text to display based on priority
+    let displayText = note.noteName ?? '';
+    // The "run" is a special overlay that should always take display priority.
+    if (noteDisplayMode === 'sequence' && sequenceNumber) {
+        displayText = sequenceNumber.toString();
+    } 
+    // For other modes, only show the special text if the note is part of the active layer.
+    else if (isInLayer) {
+        if (noteDisplayMode === 'finger' && note.finger) {
+            displayText = note.finger;
+        } else if (noteDisplayMode === 'degree' && note.degree) {
+            displayText = note.degree;
+        }
+    }
 
     let strokeColor = 'none';
-    if (isAnchor) strokeColor = COLORS.anchorNote;
-    else if (isPitchHighlighted || isNoteNameHighlighted) strokeColor = COLORS.accentGold;
-    else if (isTension) strokeColor = COLORS.tensionNote;
-    else if (isCharacteristic) strokeColor = COLORS.characteristicOutline;
+    let strokeWidth = 3;
+    let isPulsing = false;
 
-    const strokeWidth = isAnchor ? 5 : 3;
+    switch (highlightState) {
+        case 'playback':
+            strokeColor = COLORS.accentCyan;
+            strokeWidth = 5;
+            isPulsing = true;
+            break;
+        case 'anchor':
+            strokeColor = COLORS.anchorNote;
+            strokeWidth = 5;
+            isPulsing = true;
+            break;
+        case 'pitch':
+            strokeColor = COLORS.accentGold;
+            break;
+        case 'tension':
+            strokeColor = COLORS.tensionNote;
+            break;
+        case 'characteristic':
+            strokeColor = COLORS.characteristicOutline;
+            break;
+    }
 
     return (
         <g 
@@ -80,24 +75,12 @@ const FretboardNote: React.FC<FretboardNoteProps> = React.memo(({
                 cx={x} cy={y} r={r} fill={fillColor}
                 stroke={strokeColor}
                 strokeWidth={strokeWidth}
-                className={isAnchor ? 'animate-pulse-stroke' : ''}
+                className={isPulsing ? 'animate-pulse-stroke' : ''}
             />
 
-            {subText ? (
-                 <text x={x} y={y - (noteFontSize * fontScale * 0.2)} textAnchor="middle" dy="0.35em" fontSize={noteFontSize * fontScale} fill={textColor} fontWeight="bold" style={{ pointerEvents: 'none' }}>
-                    {mainText}
-                </text>
-            ) : (
-                <text x={x} y={y} textAnchor="middle" dy="0.35em" fontSize={noteFontSize * fontScale} fill={textColor} fontWeight="bold" style={{ pointerEvents: 'none' }}>
-                    {mainText}
-                </text>
-            )}
-
-            {subText && (
-                 <text x={x} y={y + (noteFontSize * fontScale * 0.7)} textAnchor="middle" dy="0.35em" fontSize={noteFontSize * fontScale * 0.8} fill={textColor} fontWeight="normal" style={{ pointerEvents: 'none' }}>
-                    {subText}
-                </text>
-            )}
+            <text x={x} y={y} textAnchor="middle" dy="0.35em" fontSize={noteFontSize * fontScale} fill={textColor} fontWeight="bold" style={{ pointerEvents: 'none' }}>
+                {displayText}
+            </text>
         </g>
     );
 });

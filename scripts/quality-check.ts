@@ -1,6 +1,5 @@
-// FIX: Add a triple-slash directive to include Node.js types, which resolves errors related to the 'process' object.
-/// <reference types="node" />
-
+// FIX: Import 'process' to provide correct Node.js types and resolve errors.
+import process from 'process';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
@@ -44,14 +43,7 @@ async function checkESLint(): Promise<CheckResult> {
 }
 
 async function runTests(): Promise<CheckResult> {
-    // This is a placeholder. When a test runner is added, replace this.
-    const name = 'Unit & Integration Tests';
-    process.stdout.write(`${YELLOW}[SKIPPED]${RESET} ${name} (No test runner configured)\n`);
-    return {
-        name,
-        success: true,
-        output: 'No test runner (e.g., Vitest, Jest) is configured in package.json.',
-    };
+    return runCommand('Unit & Component Tests', 'vitest run');
 }
 
 async function main() {
@@ -71,10 +63,11 @@ async function main() {
             if (result.error) {
                 console.log(result.error);
             }
-        } else if (result.output && result.name.includes('Tests')) {
-             console.log(`${YELLOW}[SKIPPED] ${result.name}${RESET}: ${result.output}`);
         } else {
              console.log(`${GREEN}[PASS] ${result.name}${RESET}`);
+             if (result.output && result.name.includes('Tests')) {
+                console.log(result.output.trimEnd());
+             }
         }
     }
 

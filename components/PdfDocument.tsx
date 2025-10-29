@@ -1,12 +1,11 @@
+
+
 import React, { forwardRef } from 'react';
 import type { ScaleDetails, FontSizeKey } from '../types';
 import { COLORS } from '../constants';
 import DiagramsSection from './scaleExplorerSections/DiagramsSection';
 import ResourceSection from './scaleExplorerSections/ResourceSection';
-import PracticeSection from './scaleExplorerSections/PracticeSection';
 import ResourceList from './scaleExplorerSections/ResourceList';
-import KeyChordsSection from './practiceSections/KeyChordsSection';
-import TabbedPracticeItemList from './practiceSections/TabbedPracticeItemList';
 import { SpotifyIcon, YouTubeIcon, LightbulbIcon, JamIcon } from './common/Icons';
 
 interface PdfDocumentProps {
@@ -58,16 +57,10 @@ const PdfDocument = forwardRef<HTMLDivElement, PdfDocumentProps>(({ scaleDetails
                         isSustainOn={false}
                         onSustainToggle={() => {}}
                         onPianoKeyClick={() => {}}
-                    />
-                </section>
-                <section>
-                    <h2 style={h2SectionStyles}>Core Theory & Harmony</h2>
-                    <KeyChordsSection 
-                        keyChords={scaleDetails.keyChords} 
-                        rootNote={rootNote} 
-                        scaleName={scaleName} 
-                        onChordHover={() => {}}
-                        onNoteClick={() => {}}
+                        // FIX: Add missing props required by DiagramsSectionProps.
+                        // For a static PDF, these interactive playback states are not relevant and can be set to null.
+                        playbackNote={null}
+                        activePath={null}
                     />
                 </section>
                 <section>
@@ -78,14 +71,6 @@ const PdfDocument = forwardRef<HTMLDivElement, PdfDocumentProps>(({ scaleDetails
                         {scaleDetails.creativeApplication && <ResourceList title="Creative Application" items={scaleDetails.creativeApplication} icon={<LightbulbIcon />} />}
                         {scaleDetails.jamTracks && <ResourceList title="Jam Tracks" items={scaleDetails.jamTracks} icon={<JamIcon />} />}
                     </ResourceSection>
-                </section>
-                <section>
-                    <h2 style={h2SectionStyles}>Practice Materials</h2>
-                    <PracticeSection>
-                        {scaleDetails.licks && <TabbedPracticeItemList items={scaleDetails.licks} />}
-                        {scaleDetails.advancedHarmonization && <TabbedPracticeItemList items={scaleDetails.advancedHarmonization} />}
-                        {scaleDetails.etudes && <TabbedPracticeItemList items={scaleDetails.etudes} />}
-                    </PracticeSection>
                 </section>
             </div>
         </div>

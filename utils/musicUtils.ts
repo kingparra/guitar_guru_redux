@@ -1,4 +1,5 @@
 
+
 import { TUNING, NOTE_MAP, ALL_NOTES, NUM_FRETS } from '../constants';
 import type { DiagramNote, ClickedNote } from '../types';
 
@@ -15,6 +16,9 @@ const TUNING_WITH_OCTAVES: { note: string, octave: number }[] = [
 
 /**
  * Calculates the correct musical octave for a note on the fretboard.
+ * The previous implementation had a bug where the octave change was not correctly
+ * aligned with the musical convention (i.e., at the note 'C'). This new logic
+ * corrects that, ensuring accurate pitch representation across the application.
  * @param stringIndex The index of the string (0=high E, 6=low B).
  * @param fret The fret number.
  * @returns The scientific pitch notation octave number.
@@ -27,12 +31,21 @@ export const getOctaveForNote = (stringIndex: number, fret: number): number => {
     }
     
     const openStringNoteIndex = NOTE_MAP[openString.note];
+    const cNoteIndex = NOTE_MAP['C'];
+
+    // Calculate how many semitones the open string is above its own octave's C.
+    // E.g., for G3, this would be 7 (G is 7 semitones above C3).
+    const semitonesFromOctaveC = (openStringNoteIndex - cNoteIndex + 12) % 12;
     
-    const totalSemitones = openStringNoteIndex + fret;
-    const octave = openString.octave + Math.floor(totalSemitones / 12);
+    // Add the fretted interval to get the total distance from that C.
+    const totalSemitonesFromC = semitonesFromOctaveC + fret;
+
+    // The number of times we've crossed a 12-semitone boundary is the number of octaves to add.
+    const octavesToAdd = Math.floor(totalSemitonesFromC / 12);
     
-    return octave;
+    return openString.octave + octavesToAdd;
 };
+
 
 /**
  * Calculates the note name and octave for any fret on any string.
@@ -44,10 +57,7 @@ export const getNoteFromFret = (stringIndex: number, fret: number): { noteName: 
     const openString = TUNING_WITH_OCTAVES[stringIndex];
     const openStringNoteIndex = NOTE_MAP[openString.note];
     
-    const totalSemitonesFromC0 = (openString.octave * 12 + openStringNoteIndex) + fret;
-    
-    const noteIndex = totalSemitonesFromC0 % 12;
-    
+    const noteIndex = (openStringNoteIndex + fret) % 12;
     const noteName = ALL_NOTES[noteIndex];
 
     return { noteName, octave: getOctaveForNote(stringIndex, fret) };

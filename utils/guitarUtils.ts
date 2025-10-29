@@ -1,5 +1,5 @@
 import { TUNING, NUM_FRETS, ALL_NOTES, NOTE_MAP, SCALE_FORMULAS } from '../constants';
-import type { DiagramNote, FingeringMap, PathDiagramNote, StructuredTab, Chord, Voicing, Result, ChordProgression } from '../types';
+import type { DiagramNote, FingeringMap, PathDiagramNote, StructuredTab, Chord, Voicing, Result, ChordProgression, AnchorNoteContext } from '../types';
 import { HandPositionModel } from '../models/HandPositionModel';
 
 type ScaleNote = { noteName: string; degree: string };
@@ -30,7 +30,7 @@ export const generateNotesOnFretboard = (scaleNotes: ScaleNote[]): DiagramNote[]
     if (!scaleNotes?.length) return notes;
     const scaleNoteMap = new Map(scaleNotes.map(n => [n.noteName, n.degree]));
     for (let stringIndex = 0; stringIndex < TUNING.length; stringIndex++) {
-        const openStringNoteIndex = NOTE_MAP[TUNING[stringIndex]];
+        const openStringNoteIndex = NOTE_MAP[TUNING[stringIndex].toUpperCase()];
         if (openStringNoteIndex === undefined) continue;
         for (let fret = 0; fret <= NUM_FRETS; fret++) {
             const currentNoteName = ALL_NOTES[(openStringNoteIndex + fret) % ALL_NOTES.length];
@@ -154,43 +154,79 @@ export const generateDiatonicChords = (scaleNotes: ScaleNote[]): Map<string, Cho
     return chords;
 };
 
+// FIX: Replaced the rigid position generation with a more sophisticated and ergonomic algorithm.
+// This new implementation identifies optimal 5-fret windows for the hand, resulting in
+// fingerings that are more comfortable and practical for a guitarist to play. It addresses
+// the core bug where the previous logic produced awkward or unplayable positions.
 export const generateFingeringPositions = (notesOnFretboard: DiagramNote[]): FingeringMap[] => {
+    if (notesOnFretboard.length < 7) return [];
+
     const positions: FingeringMap[] = [];
-    const fretWindows = [
-        { min: 0, max: 5 }, { min: 2, max: 7 }, { min: 4, max: 9 }, { min: 6, max: 11 },
-        { min: 8, max: 13 }, { min: 11, max: 16 }, { min: 14, max: 19 },
-    ];
+    const processedWindows = new Set<string>();
 
-    for (const window of fretWindows) {
-        const notesInWindow = notesOnFretboard.filter(n => typeof n.fret === 'number' && n.fret >= window.min && n.fret <= window.max);
-        if (notesInWindow.length < 10) continue; 
+    // Iterate up the neck to find potential anchor points for scale positions
+    for (let fret = 0; fret <= 15; fret++) {
+        // An anchor is a note on one of the two lowest strings, a common starting point for a position.
+        const hasAnchorNote = notesOnFretboard.some(
+            note => (note.string === 6 || note.string === 5) && note.fret === fret
+        );
 
-        const path: FingeringMap = [];
-        const anchorFret = window.min > 0 ? window.min : 1;
+        if (hasAnchorNote) {
+            // For each anchor, evaluate two possible 5-fret hand positions (windows):
+            // 1. Starting at the anchor fret (index finger on the anchor).
+            // 2. Starting one fret below the anchor (middle finger on the anchor).
+            // We choose the window that contains the most scale notes.
+            const windowA_Start = fret;
+            const windowB_Start = Math.max(0, fret - 1);
 
-        notesInWindow.forEach(note => {
-            const fretOffset = (note.fret as number) - anchorFret;
-            let finger = '1';
-            if (fretOffset >= 0) {
-                 finger = (fretOffset + 1).toString();
-                 if (fretOffset > 3) finger = '4'; // Pinky stretch
+            const countNotesInWindow = (start: number, end: number) =>
+                notesOnFretboard.filter(n => typeof n.fret === 'number' && n.fret >= start && n.fret <= end).length;
+            
+            const noteCountA = countNotesInWindow(windowA_Start, windowA_Start + 4);
+            const noteCountB = countNotesInWindow(windowB_Start, windowB_Start + 4);
+
+            // Determine the optimal starting fret for the position window.
+            const baseFret = (noteCountB > noteCountA && fret > 0) ? windowB_Start : windowA_Start;
+            const maxFret = baseFret + 4;
+            
+            const windowKey = `${baseFret}-${maxFret}`;
+            if (processedWindows.has(windowKey)) continue;
+
+            // Collect all notes that fall within this optimal window.
+            const notesInPosition = notesOnFretboard.filter(
+                note => typeof note.fret === 'number' && note.fret >= baseFret && note.fret <= maxFret
+            );
+
+            // Assign fingerings based on a one-finger-per-fret system relative to the window's start.
+            const positionFingering: FingeringMap = notesInPosition.map(note => {
+                const fret = note.fret as number;
+                let finger: string;
+                if (fret === 0 && baseFret === 0) {
+                    finger = '0'; // Open string
+                } else {
+                    const fretOffset = fret - baseFret;
+                    finger = (fretOffset + 1).toString();
+                }
+                return { key: `${note.string}_${fret}`, finger };
+            });
+
+            // A valid position should cover at least 5 strings and contain a reasonable number of notes.
+            const stringsCovered = new Set(notesInPosition.map(n => n.string)).size;
+            if (stringsCovered >= 5 && positionFingering.length >= 10) {
+                positions.push(positionFingering);
+                processedWindows.add(windowKey);
             }
-            path.push({ key: `${note.string}_${note.fret}`, finger });
-        });
-        
-        const stringsCovered = new Set(path.map(p => p.key.split('_')[0])).size;
-        if (stringsCovered >= 5) {
-            positions.push(path);
         }
     }
 
-    const uniquePositions = Array.from(new Set(positions.map(p => JSON.stringify(p.sort())))).map(s => JSON.parse(s));
-    uniquePositions.sort((a, b) => {
-        const minFretA = Math.min(...a.map((item: any) => parseInt(item.key.split('_')[1], 10)));
-        const minFretB = Math.min(...b.map((item: any) => parseInt(item.key.split('_')[1], 10)));
+    // Sort positions by their starting fret.
+    positions.sort((a, b) => {
+        const minFretA = Math.min(...a.map(item => parseInt(item.key.split('_')[1], 10)));
+        const minFretB = Math.min(...b.map(item => parseInt(item.key.split('_')[1], 10)));
         return minFretA - minFretB;
     });
-    return uniquePositions.slice(0, 7);
+
+    return positions.slice(0, 7); // Return up to 7 distinct positions.
 };
 
 
@@ -211,6 +247,45 @@ export const generateDiagonalRun = (notesOnFretboard: DiagramNote[]): PathDiagra
 
 export const generateHarmonizationTab = (fingering: FingeringMap[], scaleNotes: ScaleNote[], interval: number): StructuredTab => {
     return { columns: [] };
+};
+
+export const formatPathAsTab = (path: PathDiagramNote[]): StructuredTab => {
+    if (!path || path.length === 0) return { columns: [] };
+
+    const tab: StructuredTab = { columns: [] };
+    const NOTES_PER_BAR = 8;
+
+    for (let i = 0; i < path.length; i++) {
+        const note = path[i];
+        
+        // FIX: Add a guard clause to handle potentially malformed data from the AI.
+        // If a note has an invalid string index, skip it to prevent a crash.
+        if (typeof note.string !== 'number' || note.string < 0 || note.string >= TUNING.length) {
+            console.warn('Skipping note with invalid string index from AI-generated path:', note);
+            continue;
+        }
+        
+        const prevNote = i > 0 ? path[i - 1] : null;
+
+        const tabColumn = Array.from({ length: 7 }, (_, s) => ({ string: s, fret: '-' }));
+        let fretValue = note.fret.toString();
+
+        // If this note is the destination of a slide from the previous note on the same string
+        if (note.shiftType === 'slide' && prevNote && prevNote.string === note.string) {
+             fretValue = `/${note.fret}`;
+        }
+        
+        tabColumn[note.string].fret = fretValue;
+        tab.columns.push(tabColumn);
+
+        // Add a bar line every N notes
+        if ((i + 1) % NOTES_PER_BAR === 0 && i < path.length - 1) {
+            const barLineColumn = Array.from({ length: 7 }, (_, s) => ({ string: s, fret: '|' }));
+            tab.columns.push(barLineColumn);
+        }
+    }
+
+    return tab;
 };
 
 export const generateDegreeTableMarkdown = (scaleNotes: ScaleNote[]): string => {
@@ -249,4 +324,70 @@ export const generateCommonProgressions = (diatonicChords: Map<string, Chord>, s
             chords,
         }
     });
+};
+
+const getDegreeInTriad = (noteName: string, triad: string[], quality: 'maj' | 'min' | 'dim' | 'aug'): string => {
+    const index = triad.indexOf(noteName);
+    switch (index) {
+        case 0: return 'R';
+        case 1: return (quality === 'min' || quality === 'dim') ? 'b3' : '3';
+        case 2: return quality === 'dim' ? 'b5' : quality === 'aug' ? '#5' : '5';
+        default: return '';
+    }
+};
+
+
+export const generateAnchorNoteContextsFromFretboard = (
+    anchorNote: DiagramNote,
+    diatonicChords: Chord[],
+    notesOnFretboard: DiagramNote[]
+): AnchorNoteContext[] => {
+    const contexts: AnchorNoteContext[] = [];
+    if (typeof anchorNote.fret !== 'number') return [];
+
+    for (const chord of diatonicChords) {
+        if (chord.triadNotes.includes(anchorNote.noteName!)) {
+            // Determine the quality of the chord to correctly label degrees
+            let quality: 'maj' | 'min' | 'dim' | 'aug' = 'maj';
+            if (chord.name.includes('dim')) quality = 'dim';
+            else if (chord.name.includes('aug')) quality = 'aug';
+            else if (chord.name.includes('m')) quality = 'min';
+
+            const description = `${getDegreeInTriad(anchorNote.noteName!, chord.triadNotes, quality)} of ${chord.name} (${chord.degree})`;
+
+            // Define an ergonomic 5-fret "hand box" around the anchor note
+            const baseFret = Math.max(0, anchorNote.fret - 2);
+            const maxFret = baseFret + 4;
+
+            // Find all notes of the current chord's triad that are physically reachable within this box
+            const arpeggioNotesInBox = notesOnFretboard.filter(note =>
+                typeof note.fret === 'number' &&
+                chord.triadNotes.includes(note.noteName!) &&
+                note.fret >= baseFret &&
+                note.fret <= maxFret
+            );
+            
+            // Ensure the context provides more than just the anchor note itself
+            if (arpeggioNotesInBox.length < 2) continue;
+
+            // Assign logical fingerings using a one-finger-per-fret system
+            const fingeredArpeggioNotes = arpeggioNotesInBox.map(note => {
+                const fret = note.fret as number;
+                const finger = (fret - baseFret + 1).toString();
+                return {
+                    ...note,
+                    finger,
+                    degree: getDegreeInTriad(note.noteName!, chord.triadNotes, quality)
+                };
+            });
+
+            contexts.push({
+                description,
+                arpeggioNotes: fingeredArpeggioNotes,
+            });
+        }
+    }
+    
+    // Sort contexts to show more complex/useful patterns first
+    return contexts.sort((a, b) => b.arpeggioNotes.length - a.arpeggioNotes.length);
 };

@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useEffect } from 'react';
 import type {
     SongAnalysisResult,
@@ -8,6 +9,8 @@ import type {
     ClientData,
     AppCache,
     ClickedNote,
+    DiagramNote,
+    PathDiagramNote,
 } from './types';
 import { COLORS, FONT_SIZES } from './constants';
 import { useScaleGenerator } from './hooks/useScaleGenerator';
@@ -19,11 +22,12 @@ import ScaleExplorer from './components/ScaleExplorer';
 import PdfDocument from './components/PdfDocument';
 import Footer from './components/common/Footer';
 import { playNote, startSustainedNote, stopSustainedNote } from './utils/audioUtils';
+// FIX: Import getOctaveForNote utility
+import { getOctaveForNote } from './utils/musicUtils';
 
 const sectionIds: Record<string, string> = {
-    harmony: 'section-harmony',
-    practice: 'section-practice',
     resources: 'section-resources',
+    creativeExercises: 'section-creative-exercises',
 };
 
 const App: React.FC = () => {
@@ -41,6 +45,13 @@ const App: React.FC = () => {
     const [cache, setCache] = useState<AppCache>({});
     const [clickedNote, setClickedNote] = useState<ClickedNote | null>(null);
     const [isSustainOn, setIsSustainOn] = useState(false);
+
+    // Tab Player State
+    const [activePath, setActivePath] = useState<PathDiagramNote[] | null>(null);
+    const [playbackIndex, setPlaybackIndex] = useState<number | null>(null);
+    const [playbackSpeed, setPlaybackSpeed] = useState(1);
+    const isPlayingExercise = playbackIndex !== null;
+    const playbackNote = isPlayingExercise && activePath ? activePath[playbackIndex] : null;
 
     const {
         rootNote,
@@ -85,8 +96,47 @@ const App: React.FC = () => {
         rootNote,
         scaleName
     );
+    
+    const handleStopExercise = () => {
+        setActivePath(null);
+        setPlaybackIndex(null);
+    };
+
+    const handlePlayExercise = (path: PathDiagramNote[]) => {
+        if (isPlayingExercise) {
+            handleStopExercise();
+        } else {
+            setActivePath(path);
+            setPlaybackIndex(0);
+        }
+    };
+
+    // Main playback loop for the creative exercise etude
+    useEffect(() => {
+        if (playbackIndex === null || !activePath) return;
+
+        if (playbackIndex >= activePath.length) {
+            handleStopExercise();
+            return;
+        }
+
+        const noteToPlay = activePath[playbackIndex];
+        if (noteToPlay.noteName) {
+            const fret = typeof noteToPlay.fret === 'number' ? noteToPlay.fret : 0;
+            const octave = getOctaveForNote(noteToPlay.string, fret);
+            playNote(noteToPlay.noteName, octave, 600 / playbackSpeed / 1000);
+        }
+
+        const timer = setTimeout(() => {
+            setPlaybackIndex(prev => (prev === null ? null : prev + 1));
+        }, 600 / playbackSpeed);
+
+        return () => clearTimeout(timer);
+    }, [playbackIndex, activePath, playbackSpeed]);
+
 
     const handleGenerate = async (note: string, scale: string) => {
+        handleStopExercise();
         setIsAnalyzerVisible(false);
         await generate(note, scale);
     };
@@ -108,18 +158,26 @@ const App: React.FC = () => {
         setHighlightedNotes(notes);
     };
 
-    const handleNoteClick = (note: ClickedNote) => {
+    const handleNoteClick = (note: DiagramNote) => {
+        if (!note.noteName) return; 
+        
+        handleStopExercise(); // Stop playback if user interacts with diagram
+        const fret = typeof note.fret === 'number' ? note.fret : 0;
+        const octave = getOctaveForNote(note.string, fret);
+        const newClickedNote: ClickedNote = { noteName: note.noteName, octave };
+
         if (isSustainOn) {
-            startSustainedNote(note.noteName, note.octave);
+            startSustainedNote(newClickedNote.noteName, newClickedNote.octave);
         } else {
-            playNote(note.noteName, note.octave);
+            playNote(newClickedNote.noteName, newClickedNote.octave);
         }
-        setClickedNote(note);
+        setClickedNote(newClickedNote);
         setHighlightedNotes([]);
-        setHighlightedPitch(note);
+        setHighlightedPitch(newClickedNote);
     };
 
     const handlePianoKeyClick = (noteName: string, octave: number) => {
+        handleStopExercise(); // Stop playback
         const note = { noteName, octave };
         if (isSustainOn) {
             startSustainedNote(note.noteName, note.octave);
@@ -223,6 +281,14 @@ const App: React.FC = () => {
                                 isSustainOn={isSustainOn}
                                 onSustainToggle={handleSustainToggle}
                                 onPianoKeyClick={handlePianoKeyClick}
+                                // Tab Player Props
+                                playbackNote={playbackNote}
+                                activePath={activePath}
+                                onPlayExercise={handlePlayExercise}
+                                onStopExercise={handleStopExercise}
+                                isPlayingExercise={isPlayingExercise}
+                                playbackSpeed={playbackSpeed}
+                                onPlaybackSpeedChange={setPlaybackSpeed}
                             />
                         </div>
                     </div>

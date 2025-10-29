@@ -1,5 +1,6 @@
-import React from 'react';
-import type { PianoKeyboardProps } from '../../types';
+import React, { useMemo } from 'react';
+import type { PianoKeyboardProps, DiagramNote, ClickedNote } from '../../types';
+import { getOctaveForNote } from '../../utils/musicUtils';
 
 type KeyInfo = { note: string; octave: number; type: 'white' | 'black' };
 
@@ -26,13 +27,22 @@ const generatePianoKeys = (): KeyInfo[] => {
     return keys;
 };
 
+const diagramNoteToClickedNote = (note: DiagramNote | null): ClickedNote | null => {
+    if (!note || !note.noteName) return null;
+    const fret = typeof note.fret === 'number' ? note.fret : 0;
+    const octave = getOctaveForNote(note.string, fret);
+    return { noteName: note.noteName, octave };
+};
+
 const pianoKeys = generatePianoKeys();
 const whiteKeys = pianoKeys.filter(k => k.type === 'white');
 const blackKeys = pianoKeys.filter(k => k.type === 'black');
 
-const PianoKeyboard: React.FC<PianoKeyboardProps> = ({ onKeyClick, clickedNote }) => {
+const PianoKeyboard: React.FC<PianoKeyboardProps> = ({ onKeyClick, clickedNote, playbackNote }) => {
+    const noteToHighlight = useMemo(() => diagramNoteToClickedNote(playbackNote) || clickedNote, [playbackNote, clickedNote]);
+    
     const isKeyActive = (noteName: string, octave: number) => {
-        return clickedNote?.noteName === noteName && clickedNote?.octave === octave;
+        return noteToHighlight?.noteName === noteName && noteToHighlight?.octave === octave;
     };
 
     const whiteKeyWidthPercent = 100 / whiteKeys.length;

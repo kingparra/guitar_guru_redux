@@ -1,7 +1,8 @@
 
+
 import type { FontSizeKey } from './types';
 
-export const TUNING = ['E', 'B', 'G', 'D', 'A', 'E', 'B']; // High to low
+export const TUNING = ['e', 'B', 'G', 'D', 'A', 'E', 'B']; // High to low
 export const NUM_STRINGS = 7;
 export const NUM_FRETS = 24;
 

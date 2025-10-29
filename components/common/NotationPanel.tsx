@@ -1,19 +1,29 @@
 
+
 import React, { useEffect, useRef } from 'react';
-import type { NotationPanelProps } from '../../types';
+import type { NotationPanelProps, DiagramNote, ClickedNote } from '../../types';
 import { Factory, Accidental, StaveNote, Voice, Formatter } from 'vexflow';
 import { InfoIcon } from './Icons';
+import { getOctaveForNote } from '../../utils/musicUtils';
 
-const NotationPanel: React.FC<NotationPanelProps> = ({ clickedNote, isSustainOn, onSustainToggle }) => {
+const diagramNoteToClickedNote = (note: DiagramNote | null): ClickedNote | null => {
+    if (!note || !note.noteName) return null;
+    const fret = typeof note.fret === 'number' ? note.fret : 0;
+    const octave = getOctaveForNote(note.string, fret);
+    return { noteName: note.noteName, octave };
+};
+
+const NotationPanel: React.FC<NotationPanelProps> = ({ clickedNote, isSustainOn, onSustainToggle, playbackNote }) => {
     const rendererRef = useRef<HTMLDivElement>(null);
+    const noteToRender = diagramNoteToClickedNote(playbackNote) || clickedNote;
 
     useEffect(() => {
         if (rendererRef.current) {
             rendererRef.current.innerHTML = '';
             
-            if (clickedNote) {
+            if (noteToRender) {
                 try {
-                    const { noteName, octave } = clickedNote;
+                    const { noteName, octave } = noteToRender;
                     const vf = new Factory({ renderer: { elementId: rendererRef.current.id, width: 220, height: 150 } });
 
                     // Dynamically calculate stave Y position to center the note
@@ -41,13 +51,13 @@ const NotationPanel: React.FC<NotationPanelProps> = ({ clickedNote, isSustainOn,
                 }
             }
         }
-    }, [clickedNote]);
+    }, [noteToRender]);
 
     return (
         <div className="p-4 rounded-lg bg-black/20 border border-purple-400/20 h-full flex flex-col">
             <h4 className="text-xl font-bold text-gray-200 mb-2 text-center">Notation Viewer</h4>
              <div className="min-h-[200px] flex-grow flex items-center justify-center bg-white/90 rounded-md overflow-hidden">
-                {clickedNote ? (
+                {noteToRender ? (
                      <div id="notation-renderer" ref={rendererRef} className="p-2"></div>
                 ) : (
                     <div className="text-center text-gray-600 p-4">

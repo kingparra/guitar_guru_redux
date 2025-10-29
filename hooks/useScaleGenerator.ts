@@ -1,4 +1,5 @@
-import { useState, useCallback, useMemo } from 'react';
+// FIX: Import the 'React' namespace to resolve type errors with React.Dispatch and React.SetStateAction.
+import React, { useState, useCallback, useMemo } from 'react';
 import type {
     LoadingState,
     SectionKey,
@@ -7,12 +8,12 @@ import type {
     AppCache,
 } from '../types';
 import { ScaleGenerationService } from '../services/ScaleGenerationService';
+import { FALLBACK_EXERCISES } from '../services/mockData';
 
 
 const ALL_SECTIONS: SectionKey[] = [
     'listeningGuide', 'youtubeTutorials', 'creativeApplication', 
-    'jamTracks', 'licks', 
-    'advancedHarmonization', 'etudes'
+    'jamTracks', 'arpeggioEtude', 'motifEtude',
 ];
 
 const createInitialSectionState = (): LoadingState['sections'] => {
@@ -74,18 +75,52 @@ export const useScaleGenerator = (
                 },
             }));
         } else {
-            setInternalLoadingState((prev) => ({
-                ...prev,
-                sections: {
-                    ...prev.sections,
-                    [sectionKey]: {
-                        status: 'error',
-                        error: result.error.message,
-                        data: null,
-                        retryCount: prev.sections[sectionKey].retryCount + 1,
+            // FIX: Use the new, scale-aware fallback system for creative exercises.
+            // If the AI fails, it now looks up a hand-crafted etude that matches the
+            // current scale, providing a much higher-quality and more relevant fallback.
+            if (sectionKey === 'arpeggioEtude' || sectionKey === 'motifEtude') {
+                console.warn(`AI generation failed for ${sectionKey}. Using scale-specific fallback data.`);
+                
+                const fallbackKey = `${context.rootNote}-${context.scaleName}`;
+                // Find the correct set of fallbacks for the current scale, or default to E Natural Minor.
+                const fallbacksToUse = FALLBACK_EXERCISES[fallbackKey] || FALLBACK_EXERCISES['E-Natural Minor'];
+
+                const fallbackData = sectionKey === 'arpeggioEtude' 
+                    ? fallbacksToUse.arpeggioEtude
+                    : fallbacksToUse.motifEtude;
+                
+                // Set state as success with fallback data
+                setInternalLoadingState((prev) => ({
+                    ...prev,
+                    sections: {
+                        ...prev.sections,
+                        [sectionKey]: { status: 'success', error: null, data: fallbackData, retryCount: 0 },
                     },
-                },
-            }));
+                }));
+                // Also update cache with fallback data so we don't retry on next load
+                setCache(prevCache => ({
+                    ...prevCache,
+                    [cacheKey]: {
+                        ...prevCache[cacheKey],
+                        [sectionKey]: fallbackData,
+                    }
+                }));
+
+            } else {
+                // Original error handling for other sections
+                setInternalLoadingState((prev) => ({
+                    ...prev,
+                    sections: {
+                        ...prev.sections,
+                        [sectionKey]: {
+                            status: 'error',
+                            error: result.error.message,
+                            data: null,
+                            retryCount: prev.sections[sectionKey].retryCount + 1,
+                        },
+                    },
+                }));
+            }
         }
     }, [setCache]);
     
@@ -98,7 +133,7 @@ export const useScaleGenerator = (
         if (clientResult.type === 'failure') {
             const initialSections = createInitialSectionState();
             // Create a synthetic error for a section that no longer exists to display an error
-            (initialSections as any).overview = { status: 'error', error: clientResult.error.message, data: null, retryCount: 1 };
+            (initialSections as any).listeningGuide = { status: 'error', error: clientResult.error.message, data: null, retryCount: 1 };
 
             setInternalLoadingState({
                 status: 'error',
@@ -123,12 +158,16 @@ export const useScaleGenerator = (
         
         setInternalLoadingState({ status: 'success', sections: newSectionsState });
 
-        // Proactively fetch any missing sections sequentially
-        for (const sectionKey of ALL_SECTIONS) {
-            if (newSectionsState[sectionKey].status === 'pending') {
-                await generateSection(sectionKey, { rootNote: note, scaleName: scale, clientData });
-            }
-        }
+        // Proactively fetch any missing sections in parallel
+        const missingSections = ALL_SECTIONS.filter(
+            sectionKey => newSectionsState[sectionKey].status === 'pending'
+        );
+
+        await Promise.all(
+            missingSections.map(sectionKey => 
+                generateSection(sectionKey, { rootNote: note, scaleName: scale, clientData })
+            )
+        );
     }, [setClientData, cache, generateSection]);
 
 

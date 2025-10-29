@@ -1,6 +1,5 @@
-
 import { SCALE_FORMULAS } from '../constants';
-import type { Chord, ClickedNote } from '../types';
+import type { DiagramNote } from '../types';
 
 const validScales = Object.keys(SCALE_FORMULAS).join(', ');
 
@@ -20,19 +19,11 @@ Output: Return a single, valid JSON array of 2-3 scale suggestion objects, adher
 const commonPromptHeader = (rootNote: string, scaleName: string) => `
 ### Master Prompt for Generating Guitar Scale Materials
 **Request:** Generate a specific section of learning materials for the **${rootNote} ${scaleName}** scale on a seven-string guitar (tuned B E A D G B E, low to high).
-**Output Format:** You MUST return a single, valid JSON object that strictly adheres to the provided schema. **Crucial:** Ensure all string values within the JSON are properly escaped, especially making sure there are no unescaped double quotes within strings.
+**Output Format:** You MUST return a single, valid JSON array that strictly adheres to the provided schema. **Crucial:** Ensure all string values within the JSON are properly escaped, especially making sure there are no unescaped double quotes within strings.
 
 ---
 #### Core Mission & Purpose
 Your goal is to deliver musically useful, instantly readable guitar scale materials for an intermediate to advanced player. The client application generates ALL diagram data (notes, positions, fingerings, runs), ALL harmonization exercises, and ALL chord diagrams. Your role is to provide the textual, creative, and theoretical content.
-
----
-#### Structured Tablature (\`StructuredTab\`) Format
-All linear tablature (licks, etudes) MUST be in this structured JSON format:
-{ "columns": [ [ { "string": 5, "fret": "5" } ], [ { "string": 0, "fret": "|" }, ... ] ] }
-- columns: An array of columns, each representing a moment in time.
-- Column: An array of \`TabNote\` objects played simultaneously.
-- Bar Lines: A column where ALL 7 strings have a \`TabNote\` with \`fret: "|"\`.
 `;
 
 export const getListeningGuidePrompt = (rootNote: string, scaleName: string) => `
@@ -40,6 +31,7 @@ ${commonPromptHeader(rootNote, scaleName)}
 ---
 #### SECTION TO GENERATE: Listening Guide ONLY
 Generate the 'listeningGuide' array. Select 2-4 "deeper cuts" or tracks from technical genres. Avoid over-cited examples.
+**CRITICAL:** For each entry, you MUST include a brief 'explanation' field (1-2 sentences) describing why this song is a good example of the scale.
 `;
 export const getYoutubeTutorialsPrompt = (rootNote: string, scaleName: string) => `
 ${commonPromptHeader(rootNote, scaleName)}
@@ -58,63 +50,74 @@ ${commonPromptHeader(rootNote, scaleName)}
 ---
 #### SECTION TO GENERATE: Jam Tracks ONLY
 Generate the 'jamTracks' array. Find 2-4 high-quality backing tracks on YouTube.
-`;
-export const getLicksPrompt = (rootNote: string, scaleName: string) => `
-${commonPromptHeader(rootNote, scaleName)}
----
-#### SECTION TO GENERATE: Licks ONLY
-Generate the 'licks' array (1-2 licks). Licks should be musically interesting and use \`StructuredTab\`.
-`;
-export const getAdvancedHarmonizationPrompt = (rootNote: string, scaleName: string) => `
-${commonPromptHeader(rootNote, scaleName)}
----
-#### SECTION TO GENERATE: Advanced Harmonization ONLY
-Generate the 'advancedHarmonization' array (1-2 exercises).
-CRITICAL: Provide ONLY the \`name\` and \`description\`. DO NOT GENERATE THE \`tab\`.
-`;
-export const getEtudesPrompt = (rootNote: string, scaleName: string) => `
-${commonPromptHeader(rootNote, scaleName)}
----
-#### SECTION TO GENERATE: Etudes ONLY
-Generate the 'etudes' array (1-2 etudes). Etudes should be at least 8 bars long using \`StructuredTab\`.
+**CRITICAL:** For each entry, you MUST include a brief 'explanation' field (1-2 sentences) describing the style and feel of the jam track.
 `;
 
-export const getChordProgressionAnalysisPrompt = (rootNote: string, scaleName: string, progressionAnalysis: string) => `
-### Master Prompt for Chord Progression Analysis (Composer Mode)
-**Act as an expert composer and music theorist.**
-**Context:** The user is studying the **${rootNote} ${scaleName}** scale.
-**Request:** Provide a deep, insightful musical analysis for the chord progression: **${progressionAnalysis}**.
-**Output Format:** You MUST return a single, valid JSON object that strictly adheres to the provided schema. Ensure the 'analysisText' is a well-written, single string.
+const creativeExerciseBasePrompt = (rootNote: string, scaleName: string) => `
+### Master Prompt for Generating a Creative Guitar Etude
+**Act as a master guitar instructor and composer.**
+
+**Context:** The user is learning the **${rootNote} ${scaleName}** scale. You have been provided with an exhaustive list of every possible fretting position (each a unique string-and-fret combination) for this scale across a 24-fret, 7-string guitar.
+
+**Primary Mandate (NON-NEGOTIABLE):**
+Your task is to transform the purely mechanical exercise of playing every single one of these provided fretting positions into an engaging, musical, and technical etude. The final generated 'path' MUST contain every single provided fretting position exactly once. This is a "connect-the-dots" challenge where the dots are all the scale's physical locations on the neck.
+
+**General Composition Rules:**
+- The etude must be monophonic (one note at a time).
+- Do not include hammer-ons or pull-offs. Simple slides are acceptable if musically appropriate.
+- The path should be ergonomic and playable for an advanced guitarist.
 `;
 
-export const getChordInspectorDataPrompt = (rootNote: string, scaleName: string, chord: Chord) => `
-### Master Prompt for Chord Inspector (Composer/Improviser Mode)
-**Act as an expert improviser and music theorist.**
-**Context:** The user is analyzing the **${chord.name} (${chord.degree})** chord within the key of **${rootNote} ${scaleName}**.
-**Request:** Provide a breakdown of the melodic options over this specific chord in this specific key.
+export const getArpeggioEtudePrompt = (rootNote: string, scaleName: string, notesOnFretboard: DiagramNote[]) => `
+${creativeExerciseBasePrompt(rootNote, scaleName)}
 
-**Analysis Steps:**
-1.  **Identify Chord Tones:** List the notes of the chord's triad. These are the "safe" notes.
-2.  **Identify Scale Tones:** List the remaining notes from the parent **${rootNote} ${scaleName}** scale that are NOT in the chord. These are the "passing" notes.
-3.  **Identify Tension Notes:** From the "Scale Tones" list, select the 1-2 most musically interesting "tension" notes that add color and sophistication when played over this chord. For example, the #4 over a major chord (Lydian sound) or the major 7th over a minor chord. Briefly explain WHY each is a good choice.
+**Etude to Compose: "Diatonic Arpeggiation Study"**
+-   **Concept:** A harmonically rich technical study that builds fretboard mastery by connecting every fretting position with varied diatonic arpeggios, creating melodic interest through changes in direction and contour.
+-   **Specific Composition Rules:**
+    1.  **Exhaustive Path (CRITICAL):** The final 'path' array you generate MUST contain every single fretting position from the provided fretboard data, each appearing exactly once. Do not omit any, and do not add any that were not provided.
+    2.  **Musical Connection:** The path MUST AVOID simple linear ascents or descents. Instead, use a rich variety of diatonic arpeggio fragments (triads, sevenths) as the 'glue' to connect the required fretting positions. Employ both ascending and descending patterns, inversions, and occasional wide melodic leaps to create texture and unexpected, yet musical, turns. The goal is to make the traversal harmonically intelligent and melodically engaging.
+    3.  **Melodic Contour:** The overall path should have a dynamic contour. While it must cover the entire fretboard, it should feature shifts in direction, moving both up and down the neck in smaller sections to avoid a monotonous, linear feel.
+    4.  **Avoid Horizontal Stagnation:** The path must not contain long, purely horizontal runs (e.g., playing every available note across all strings at a single fret without changing position). The etude must encourage fluid movement both up and down the neck (position shifting) and across the strings.
+    5.  **Avoid Simplistic Traversal:** The path MUST NOT be a simple linear run up or down a single string for its entire length, nor a systematic string-by-string traversal of the neck. It needs melodic and rhythmic variety.
+-   **Explanation:** Write a brief, encouraging explanation for the user describing how this etude builds a deep connection between the physical scale shape and its underlying harmonic structure.
 
-**Output Format:** You MUST return a single, valid JSON object that strictly adheres to the schema: { "chordTones": string[], "scaleTones": string[], "tensionNotes": string[] }. No introductory text or markdown.
+**Output Format:** You MUST return a single, valid JSON object. Adhere strictly to the schema:
+\`\`\`json
+{
+  "title": "Diatonic Arpeggiation Etude",
+  "explanation": "Your explanation for the arpeggio etude goes here.",
+  "path": [
+    { "string": 6, "fret": 12, "noteName": "B", "degree": "5", "finger": "1" }
+  ]
+}
+\`\`\`
+**Provided Fretboard Data (Every possible fretting position):**
+${JSON.stringify(notesOnFretboard, null, 2)}
 `;
 
-export const getAnchorNoteContextsPrompt = (rootNote: string, scaleName: string, anchorNote: ClickedNote, diatonicChords: Chord[]) => `
-### Master Prompt for Anchor Note System (Improviser Mode)
-**Act as an expert improviser and guitarist.**
-**Context:** The user is in "Anchor Note" mode. They have selected the note **${anchorNote.noteName}** (pitch: ${anchorNote.noteName}${anchorNote.octave}) as their physical and melodic anchor point on the fretboard. The key is **${rootNote} ${scaleName}**.
-**The available diatonic chords are:** ${diatonicChords.map(c => `${c.name} (${c.degree})`).join(', ')}.
+export const getMotifEtudePrompt = (rootNote: string, scaleName: string, notesOnFretboard: DiagramNote[]) => `
+${creativeExerciseBasePrompt(rootNote, scaleName)}
 
-**Request:** Identify the different harmonic functions this anchor note can serve within the key. For each function, generate an ergonomic, 2-5 note arpeggio fragment that a guitarist could realistically play starting from or passing through the anchor note.
+**Etude to Compose: "Melodic Motif Development Study"**
+-   **Concept:** A technical and creative study that builds picking accuracy and fretboard visualization by applying a repeating melodic/rhythmic idea (a motif) to connect every fretting position across the entire neck.
+-   **Specific Composition Rules:**
+    1.  **Exhaustive Path (CRITICAL):** The final 'path' array you generate MUST contain every single fretting position from the provided fretboard data, each appearing exactly once. Do not omit any, and do not add any that were not provided.
+    2.  **Motif-Based Connection:** Invent a short (3-6 note) melodic/rhythmic motif. The path you create should apply this motif repeatedly, transposing it diatonically as it moves through the scale to connect all the required fretting positions. The motif should be applied across different string sets and octaves to create interest.
+    3.  **Melodic Contour:** The overall path should have a dynamic contour. While it must cover the entire fretboard, it should feature shifts in direction, moving both up and down the neck in smaller sections to avoid a monotonous, linear feel.
+    4.  **Avoid Horizontal Stagnation:** Similar to the arpeggio study, this etude must not get stuck in one position. The motif should travel fluidly across the fretboard, encouraging a mix of positional and cross-string movement to feel dynamic and practical.
+    5.  **Avoid Simplistic Traversal:** The path MUST NOT be a simple linear run up or down a single string for its entire length, nor a systematic string-by-string traversal of the neck. It needs melodic and rhythmic variety.
+-   **Explanation:** Write a brief, encouraging explanation for the user describing how practicing with motifs can unlock new creative ideas and improve technical consistency.
 
-**Analysis Steps:**
-1.  Iterate through the diatonic chords. Find which chords contain the anchor note **${anchorNote.noteName}**.
-2.  For each match, describe the anchor note's function (e.g., "Root of Gmaj (III)", "b3rd of Emin (i)", "5th of Cmaj (VI)").
-3.  For each function, devise a short, practical, and ergonomic arpeggio fragment (2-5 notes) on the guitar that includes the anchor note. The fragment should be easily playable and demonstrate the note's role in that chord's sound.
-4.  The output must be an array of \`AnchorNoteContext\` objects.
-
-**Output Format:** You MUST return a single, valid JSON array adhering to the schema: [{ "description": string, "arpeggioNotes": [{ "string": number, "fret": number, "finger": string, "degree": string, "noteName": string }] }].
-The \`arpeggioNotes\` MUST contain the anchor note. Fingerings should be ergonomic suggestions (1-4). Degrees should be relative to the arpeggio's root (R, b3, 3, 5, etc.). Note names must be included.
+**Output Format:** You MUST return a single, valid JSON object. Adhere strictly to the schema:
+\`\`\`json
+{
+  "title": "Melodic Motif Development Etude",
+  "explanation": "Your explanation for the motif etude goes here.",
+  "path": [
+    { "string": 6, "fret": 12, "noteName": "B", "degree": "5", "finger": "1" }
+  ]
+}
+\`\`\`
+**Provided Fretboard Data (Every possible fretting position):**
+${JSON.stringify(notesOnFretboard, null, 2)}
 `;

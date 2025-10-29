@@ -1,3 +1,5 @@
+
+
 import React, { useState } from 'react';
 import { ALL_NOTES, SCALE_FORMULAS } from '../constants';
 import type { FontSizeKey } from '../types';
@@ -48,10 +50,8 @@ const NavigationMode: React.FC<{ sectionIds: Record<string, string>, onSwitchToS
         document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
-    // FIX: Removed "Overview" nav item because the section was removed.
     const navItems = [
-        { id: sectionIds.harmony, label: 'Harmony' },
-        { id: sectionIds.practice, label: 'Practice' },
+        { id: sectionIds.creativeExercises, label: 'Creative Exercises' },
         { id: sectionIds.resources, label: 'Resources' },
     ];
 

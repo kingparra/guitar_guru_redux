@@ -1,0 +1,88 @@
+import React, { useMemo } from 'react';
+import type { DiagramNote, ClickedNote } from '../../types';
+import { useAppContext } from '../../contexts/AppContext';
+import { useTabPlayer } from '../../hooks/useTabPlayer';
+import { getOctaveForNote } from '../../utils/musicUtils';
+
+type KeyInfo = { note: string; octave: number; type: 'white' | 'black' };
+
+const generatePianoKeys = (): KeyInfo[] => {
+    const keys: KeyInfo[] = [];
+    const pitches = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    keys.push({ note: 'A', octave: 0, type: 'white' }, { note: 'A#', octave: 0, type: 'black' }, { note: 'B', octave: 0, type: 'white' });
+    for (let octave = 1; octave <= 7; octave++) {
+        for (const note of pitches) {
+            keys.push({ note, octave, type: note.includes('#') ? 'black' : 'white' });
+        }
+    }
+    keys.push({ note: 'C', octave: 8, type: 'white' });
+    return keys;
+};
+
+const diagramNoteToClickedNote = (note: DiagramNote | null): ClickedNote | null => {
+    if (!note || !note.noteName) return null;
+    const fret = typeof note.fret === 'number' ? note.fret : 0;
+    const octave = getOctaveForNote(note.string, fret);
+    return { noteName: note.noteName, octave };
+};
+
+const pianoKeys = generatePianoKeys();
+const whiteKeys = pianoKeys.filter(k => k.type === 'white');
+const blackKeys = pianoKeys.filter(k => k.type === 'black');
+
+const PianoKeyboard: React.FC<{ onKeyClick: (noteName: string, octave: number) => void }> = ({ onKeyClick }) => {
+    const { clickedNote } = useAppContext();
+    const { playbackNote } = useTabPlayer();
+    const noteToHighlight = useMemo(() => diagramNoteToClickedNote(playbackNote) || clickedNote, [playbackNote, clickedNote]);
+    
+    const isKeyActive = (noteName: string, octave: number) => {
+        return noteToHighlight?.noteName === noteName && noteToHighlight?.octave === octave;
+    };
+
+    const whiteKeyWidthPercent = 100 / whiteKeys.length;
+
+    const blackKeyPositions = blackKeys.map(blackKey => {
+        const precedingWhiteKeyNote = blackKey.note.charAt(0);
+        const whiteKeyIndex = whiteKeys.findIndex(wk => wk.note === precedingWhiteKeyNote && wk.octave === blackKey.octave);
+        const left = (whiteKeyIndex + 1) * whiteKeyWidthPercent;
+        return { key: blackKey, left };
+    });
+
+    return (
+        <div className="p-4 rounded-lg bg-black/20 border border-purple-400/20 h-full flex flex-col">
+            <h4 className="text-xl font-bold text-gray-200 mb-4 text-center">Interactive Keyboard</h4>
+            <div className="relative w-full h-48">
+                {/* White Keys */}
+                <div className="flex w-full h-full">
+                    {whiteKeys.map(({ note, octave }) => (
+                        <button
+                            key={`${note}${octave}`}
+                            title={`${note}${octave}`}
+                            onClick={() => onKeyClick(note, octave)}
+                            className={`flex-1 h-full border-x border-gray-800 rounded-b-sm transition-colors ${
+                                isKeyActive(note, octave) ? 'bg-cyan-400' : 'bg-white'
+                            }`}
+                        ></button>
+                    ))}
+                </div>
+                {/* Black Keys */}
+                {blackKeyPositions.map(({ key, left }) => (
+                    <button
+                        key={`${key.note}${key.octave}`}
+                        title={`${key.note}${key.octave}`}
+                        onClick={() => onKeyClick(key.note, key.octave)}
+                        className={`h-2/3 border border-black absolute z-10 top-0 -translate-x-1/2 transition-colors hover:bg-gray-600 ${
+                            isKeyActive(key.note, key.octave) ? 'bg-cyan-400 border-cyan-300' : 'bg-gray-800'
+                        }`}
+                        style={{
+                            width: `${whiteKeyWidthPercent * 0.7}%`,
+                            left: `${left}%`
+                        }}
+                    ></button>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+export default PianoKeyboard;

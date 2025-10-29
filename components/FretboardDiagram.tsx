@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import type { FretboardDiagramProps, DiagramNote, Barre, PathDiagramNote, ClickedNote } from '../types';
+import type { FretboardDiagramProps, DiagramNote, Barre, PathDiagramNote, ClickedNote, NoteHighlightState } from '../types';
 import { FRET_MARKERS, COLORS, TUNING } from '../constants';
 import { useFretboardLayout } from '../hooks/useFretboardLayout';
 import FretboardNote from './FretboardNote';
@@ -10,17 +10,19 @@ const SvgStringAndSymbolLabels: React.FC<{
     numStrings: number;
     openStrings?: number[];
     mutedStrings?: number[];
+    allNotes: DiagramNote[];
     getY: (s: number) => number;
     fontScale: number;
     x: number;
-    onNoteClick?: (note: ClickedNote) => void;
-}> = React.memo(({ numStrings, openStrings, mutedStrings, getY, fontScale, x, onNoteClick }) => {
+    onNoteClick?: (note: DiagramNote) => void;
+}> = React.memo(({ numStrings, openStrings, mutedStrings, allNotes, getY, fontScale, x, onNoteClick }) => {
 
     const handleClick = (stringIndex: number) => {
         if (!onNoteClick) return;
-        // Fret 0 is an open string
-        const { noteName, octave } = getNoteFromFret(stringIndex, 0);
-        onNoteClick({ noteName, octave });
+        const openNote = allNotes.find(n => n.string === stringIndex && n.fret === 0);
+        if (openNote) {
+            onNoteClick(openNote);
+        }
     };
 
     return (
@@ -176,18 +178,25 @@ const SvgSlideLines: React.FC<{ run: PathDiagramNote[], getX: (f: number) => num
 const SvgClickTargets: React.FC<{
     numStrings: number;
     fretsToRender: number[];
+    allNotes: DiagramNote[];
     fretWidth: number;
     fretHeight: number;
     getX: (f: number) => number;
     getY: (s: number) => number;
-    onNoteClick?: (note: ClickedNote) => void;
+    onNoteClick?: (note: DiagramNote) => void;
     studioMode: FretboardDiagramProps['studioMode'];
-}> = React.memo(({ numStrings, fretsToRender, fretWidth, fretHeight, getX, getY, onNoteClick, studioMode }) => {
+}> = React.memo(({ numStrings, fretsToRender, allNotes, fretWidth, fretHeight, getX, getY, onNoteClick, studioMode }) => {
     if (!onNoteClick) return null;
 
     const handleClick = (stringIndex: number, fret: number) => {
-        const { noteName, octave } = getNoteFromFret(stringIndex, fret);
-        onNoteClick({ noteName, octave });
+        const targetNote = allNotes.find(n => n.string === stringIndex && n.fret === fret);
+        if (targetNote) {
+            onNoteClick(targetNote);
+        } else {
+             // Handle clicks on chromatic notes that might not be in the main scale set
+            const { noteName } = getNoteFromFret(stringIndex, fret);
+            onNoteClick({ string: stringIndex, fret, noteName, degree: '' });
+        }
     };
 
     const cursorClass = studioMode === 'anchor' ? 'cursor-crosshair' : 'cursor-pointer';
@@ -218,7 +227,7 @@ const SvgClickTargets: React.FC<{
 const FretboardDiagram: React.FC<FretboardDiagramProps> = ({
     title, frettedNotes, chromaticNotes = [], characteristicDegrees, fretRange, noteDisplayMode = 'noteName',
     diagonalRun, barres, openStrings, mutedStrings, fontScale = 1.0, numStrings = 7, highlightedNotes, highlightedPitch, onNoteClick,
-    studioMode, activeLayerNotes, tensionNotes, anchorNote
+    studioMode, activeLayerNotes, tensionNotes, anchorNote, playbackNote
 }) => {
     const layout = useFretboardLayout(fretRange, numStrings);
     const { diagramWidth, diagramHeight, fretWidth, getX, getY, LABEL_COL_WIDTH, FRET_NUM_HEIGHT, fretsToRender, paddingX, fretHeight } = layout;
@@ -226,54 +235,83 @@ const FretboardDiagram: React.FC<FretboardDiagramProps> = ({
     const allNotesToRender = useMemo(() => [...frettedNotes, ...chromaticNotes], [frettedNotes, chromaticNotes]);
 
     const runSequenceLookup = useMemo(() => {
-        if (noteDisplayMode !== 'sequence' || !activeLayerNotes) return new Map<string, number>();
         const map = new Map<string, number>();
         if (diagonalRun) {
             diagonalRun.forEach((note, index) => {
                 const key = `${note.string}_${note.fret}`;
-                if (activeLayerNotes.has(key)) {
-                    map.set(key, index + 1)
-                }
+                map.set(key, index + 1);
             });
         }
         return map;
-    }, [diagonalRun, activeLayerNotes, noteDisplayMode]);
+    }, [diagonalRun]);
+    
+    // FIX: Consolidate open strings from both scale data (fret: 0) and explicit voicings.
+    // This ensures the 'open' symbol is shown consistently.
+    const allOpenStrings = useMemo(() => {
+        const scaleOpenStrings = allNotesToRender
+            .filter(note => note.fret === 0)
+            .map(note => note.string);
+        // Combine with explicitly passed open strings from voicings, removing duplicates.
+        return [...new Set([...scaleOpenStrings, ...(openStrings || [])])];
+    }, [allNotesToRender, openStrings]);
 
     const nutX = paddingX + LABEL_COL_WIDTH;
 
     return (
         <div className="my-4">
-             <h3 className="text-xl font-bold text-center mb-4" style={{ color: COLORS.textHeader }}>{title}</h3>
+             {title && <h3 className="text-xl font-bold text-center mb-4" style={{ color: COLORS.textHeader }}>{title}</h3>}
             <svg viewBox={`0 0 ${diagramWidth} ${diagramHeight}`} preserveAspectRatio="xMidYMid meet" className="block mx-auto max-w-full">
                 <rect width="100%" height="100%" fill={COLORS.bgPrimary} />
 
-                <SvgStringAndSymbolLabels numStrings={numStrings} openStrings={openStrings} mutedStrings={mutedStrings} getY={getY} fontScale={fontScale} x={paddingX + LABEL_COL_WIDTH / 2} onNoteClick={onNoteClick} />
+                <SvgStringAndSymbolLabels numStrings={numStrings} openStrings={allOpenStrings} mutedStrings={mutedStrings} allNotes={allNotesToRender} getY={getY} fontScale={fontScale} x={paddingX + LABEL_COL_WIDTH / 2} onNoteClick={onNoteClick} />
                 <SvgFretNumberLabels frets={fretsToRender} getX={getX} y={FRET_NUM_HEIGHT / 2} fontScale={fontScale} />
                 
                 <SvgStrings count={numStrings} getY={getY} width={diagramWidth} xOffset={nutX} paddingX={paddingX} />
                 <SvgFrets numStrings={numStrings} frets={fretsToRender} getX={getX} getY={getY} fretWidth={fretWidth} nutX={nutX} />
                 <SvgFretMarkers fretRange={fretRange} getX={getX} getY={getY} numStrings={numStrings} />
-                <SvgClickTargets numStrings={numStrings} fretsToRender={fretsToRender} fretWidth={fretWidth} fretHeight={fretHeight} getX={getX} getY={getY} onNoteClick={onNoteClick} studioMode={studioMode} />
+                <SvgClickTargets numStrings={numStrings} fretsToRender={fretsToRender} allNotes={allNotesToRender} fretWidth={fretWidth} fretHeight={fretHeight} getX={getX} getY={getY} onNoteClick={onNoteClick} studioMode={studioMode} />
                 <SvgBarres barres={barres} fretRange={fretRange} getX={getX} getY={getY} />
                 
                 {diagonalRun && <SvgSlideLines run={diagonalRun} getX={getX} getY={getY} />}
 
                 <g className="notes">
                     {allNotesToRender.map((note, index) => {
-                        if (typeof note.fret !== 'number') {
+                        // FIX: Do not render note markers on fret 0 (the nut). Open strings are indicated by symbols instead.
+                        if (typeof note.fret !== 'number' || note.fret === 0) {
                             return null;
                         }
                         const fret = note.fret;
                         const noteKey = `${note.string}_${fret}`;
-                        const handleClick = onNoteClick && note.noteName
-                            ? () => onNoteClick({ noteName: note.noteName!, octave: getOctaveForNote(note.string, fret) })
-                            : undefined;
+                        const handleClick = onNoteClick ? () => onNoteClick(note) : undefined;
                         
                         const octave = getOctaveForNote(note.string, fret);
                         const isPitchHighlighted = !!(highlightedPitch && highlightedPitch.noteName === note.noteName && highlightedPitch.octave === octave);
-                        const isAnchor = !!(anchorNote && anchorNote.noteName === note.noteName && anchorNote.octave === octave);
-                        const isTension = tensionNotes?.includes(note.noteName || '') || false;
+                        const isNoteNameHighlighted = highlightedNotes?.includes(note.noteName ?? '');
+                        const isAnchor = !!(anchorNote && anchorNote.string === note.string && anchorNote.fret === note.fret);
+                        const isTension = !!(tensionNotes?.includes(note.noteName || '') && activeLayerNotes?.has(noteKey));
+                        const isCharacteristic = characteristicDegrees.includes(note.degree ?? '');
+                        const isPlaybackNote = !!(playbackNote && playbackNote.string === note.string && playbackNote.fret === note.fret);
 
+                        let highlightState: NoteHighlightState = 'none';
+                        if (isAnchor) {
+                            highlightState = 'anchor';
+                        } else if (highlightedPitch) {
+                            // If a specific pitch is selected, ONLY check for a pitch match.
+                            if(isPitchHighlighted) highlightState = 'pitch';
+                        } else if (isNoteNameHighlighted) {
+                            // Otherwise, check for note name matches (e.g., from chord hover).
+                            highlightState = 'pitch';
+                        } else if (isTension) {
+                            highlightState = 'tension';
+                        } else if (isCharacteristic) {
+                            highlightState = 'characteristic';
+                        }
+                        
+                        // Playback highlight takes highest priority
+                        if (isPlaybackNote) {
+                            highlightState = 'playback';
+                        }
+                        
                         return (
                             <FretboardNote 
                                 key={`${noteKey}-${index}`} 
@@ -282,16 +320,12 @@ const FretboardDiagram: React.FC<FretboardDiagramProps> = ({
                                 y={getY(note.string)} 
                                 fontScale={fontScale} 
                                 isRoot={note.degree === 'R'} 
-                                isCharacteristic={characteristicDegrees.includes(note.degree ?? '')} 
                                 sequenceNumber={runSequenceLookup.get(noteKey)} 
                                 noteDisplayMode={noteDisplayMode} 
-                                highlightedNotes={highlightedNotes} 
-                                isPitchHighlighted={isPitchHighlighted}
                                 onClick={handleClick}
                                 layerNotesLookup={activeLayerNotes}
                                 studioMode={studioMode}
-                                isTension={isTension}
-                                isAnchor={isAnchor}
+                                highlightState={highlightState}
                             />
                         );
                     })}

@@ -1,7 +1,10 @@
 
+
 import React from 'react';
 import type { AnchorContextPanelProps } from '../../types';
 import { InfoIcon, SparklesIcon } from './Icons';
+// FIX: Import the utility function to calculate a note's octave.
+import { getOctaveForNote } from '../../utils/musicUtils';
 
 const AnchorContextPanel: React.FC<AnchorContextPanelProps> = ({ contexts, onContextSelect, isLoading, error, anchorNote }) => {
     if (!anchorNote) {
@@ -13,11 +16,15 @@ const AnchorContextPanel: React.FC<AnchorContextPanelProps> = ({ contexts, onCon
         );
     }
     
+    // FIX: Calculate the octave from the DiagramNote's string/fret info, as 'octave' is not a direct property.
+    const octave = anchorNote.fret !== 'x' ? getOctaveForNote(anchorNote.string, anchorNote.fret as number) : '';
+
     return (
         <div className="bg-black/20 p-4 rounded-lg border border-purple-400/20 animate-fade-in">
             <h3 className="text-xl font-bold mb-3 flex items-center gap-3 text-gray-200">
                 <SparklesIcon />
-                <span>Anchor Note: {anchorNote.noteName}{anchorNote.octave}</span>
+                {/* FIX: Use the calculated octave for display. */}
+                <span>Anchor Note: {anchorNote.noteName}{octave}</span>
             </h3>
             {isLoading && (
                 <div className="flex items-center justify-center p-8">

@@ -1,0 +1,36 @@
+import { describe, it, expect } from 'vitest';
+import { FretboardService } from './FretboardService';
+import { MusicTheoryService } from './MusicTheoryService';
+
+describe('FretboardService', () => {
+    describe('generateFingeringPositions', () => {
+        it('should generate a consistent set of fingering positions for E Natural Minor', () => {
+            // This acts as a snapshot test to ensure the complex ergonomic algorithm doesn't regress.
+            const scaleNotesResult = MusicTheoryService.generateScaleNotes('E', 'Natural Minor');
+            expect(scaleNotesResult.type).toBe('success');
+            const scaleNotes = scaleNotesResult.type === 'success' ? scaleNotesResult.value : [];
+            
+            const notesOnFretboard = FretboardService.generateNotesOnFretboard(scaleNotes);
+            const positions = FretboardService.generateFingeringPositions(notesOnFretboard);
+
+            // Expect it to find the 7 standard positions
+            expect(positions.length).toBe(7);
+
+            // Check the first position (open position)
+            const openPosition = positions[0];
+            const openPositionFrets = openPosition.map(p => parseInt(p.key.split('_')[1]));
+            expect(Math.min(...openPositionFrets)).toBe(0);
+            expect(Math.max(...openPositionFrets)).toBe(3);
+
+             // Check a higher position
+            const highPosition = positions.find(p => {
+                const frets = p.map(item => parseInt(item.key.split('_')[1], 10));
+                return Math.min(...frets) === 12;
+            });
+            expect(highPosition).toBeDefined();
+
+            // The full snapshot of the generated positions
+            expect(positions).toMatchSnapshot();
+        });
+    });
+});
