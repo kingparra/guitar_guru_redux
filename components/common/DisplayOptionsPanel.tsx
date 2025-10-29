@@ -1,5 +1,6 @@
 
 
+
 import React from 'react';
 import type { DisplayOptionsPanelProps, StudioMode } from '../../types';
 
@@ -73,16 +74,14 @@ const DisplayOptionsPanel: React.FC<DisplayOptionsPanelProps> = ({
                     isActive={studioMode === 'chat'}
                     onClick={() => handleModeChange('chat')}
                 />
-            </div>
-            
-            <div className="border-t border-purple-400/20 pt-4 flex items-center justify-center gap-x-4">
-                 <ModeButton
+                <div className="w-px h-6 bg-purple-400/20 mx-2 hidden md:block"></div>
+                <ModeButton
                     label="Octave Color"
                     isActive={isOctaveColorOn}
                     onClick={onOctaveColorToggle}
                 />
             </div>
-
+            
             {studioMode === 'inspector' && (
                 <div className="animate-fade-in border-t border-purple-400/20 pt-4">
                     <div className="flex flex-row items-center justify-center gap-2 flex-wrap">

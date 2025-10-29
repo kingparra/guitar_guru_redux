@@ -50,6 +50,7 @@ export interface DiagramNote {
     degree?: string;
     finger?: string;
     isMuted?: boolean;
+    displayText?: string; // Optional custom text for display
 }
 
 export type PathDiagramNote = DiagramNote & { finger: string; shiftType?: 'slide' };

@@ -1,10 +1,13 @@
 
 
+
+
 import React, { useEffect, useRef } from 'react';
 import type { NotationPanelProps, DiagramNote, ClickedNote } from '../../types';
 import { Factory, Accidental, StaveNote, Voice, Formatter } from 'vexflow';
 import { InfoIcon } from './Icons';
 import { getOctaveForNote } from '../../utils/musicUtils';
+import { OCTAVE_COLORS } from '../../constants';
 
 const diagramNoteToClickedNote = (note: DiagramNote | null): ClickedNote | null => {
     if (!note || !note.noteName) return null;
@@ -13,7 +16,7 @@ const diagramNoteToClickedNote = (note: DiagramNote | null): ClickedNote | null 
     return { noteName: note.noteName, octave };
 };
 
-const NotationPanel: React.FC<NotationPanelProps> = ({ clickedNote, isSustainOn, onSustainToggle, playbackNote }) => {
+const NotationPanel: React.FC<NotationPanelProps> = ({ clickedNote, isSustainOn, onSustainToggle, playbackNote, isOctaveColorOn }) => {
     const rendererRef = useRef<HTMLDivElement>(null);
     const noteToRender = diagramNoteToClickedNote(playbackNote) || clickedNote;
 
@@ -40,6 +43,12 @@ const NotationPanel: React.FC<NotationPanelProps> = ({ clickedNote, isSustainOn,
 
                     const staveNote = new StaveNote({ keys: [`${noteLetter}/${octave}`], duration: 'w' });
                     if (hasAccidental) staveNote.addModifier(new Accidental('#'), 0);
+                    
+                    if (isOctaveColorOn) {
+                        const color = OCTAVE_COLORS[octave] || OCTAVE_COLORS[6];
+                        staveNote.setStyle({ fillStyle: color, strokeStyle: color });
+                    }
+
 
                     const voice = new Voice({ num_beats: 4, beat_value: 4 });
                     voice.addTickables([staveNote]);
@@ -51,7 +60,7 @@ const NotationPanel: React.FC<NotationPanelProps> = ({ clickedNote, isSustainOn,
                 }
             }
         }
-    }, [noteToRender]);
+    }, [noteToRender, isOctaveColorOn]);
 
     return (
         <div className="p-4 rounded-lg bg-black/20 border border-purple-400/20 h-full flex flex-col">

@@ -1,6 +1,7 @@
 
 
 
+
 export type NoteHighlightState = 'anchor' | 'pitch' | 'tension' | 'characteristic' | 'playback' | 'none';
 
 export interface Song {
@@ -157,6 +158,8 @@ export interface ScaleExplorerProps {
     isPlayingExercise: boolean;
     playbackSpeed: number;
     onPlaybackSpeedChange: (speed: number) => void;
+    isOctaveColorOn: boolean;
+    onOctaveColorToggle: () => void;
 }
 
 export type LayerType = 'run' | 'positions' | 'inspector';
@@ -277,6 +280,7 @@ export interface NotationPanelProps {
     isSustainOn: boolean;
     onSustainToggle: () => void;
     playbackNote: DiagramNote | null;
+    isOctaveColorOn: boolean;
 }
 
 export interface DiagramsSectionProps {
@@ -294,6 +298,8 @@ export interface DiagramsSectionProps {
     onPianoKeyClick: (noteName: string, octave: number) => void;
     playbackNote: DiagramNote | null;
     activePath: PathDiagramNote[] | null;
+    isOctaveColorOn: boolean;
+    onOctaveColorToggle: () => void;
 }
 
 export interface DisplayOptionsPanelProps {
@@ -320,6 +326,7 @@ export interface PianoKeyboardProps {
     onKeyClick: (noteName: string, octave: number) => void;
     clickedNote: ClickedNote | null;
     playbackNote: DiagramNote | null;
+    isOctaveColorOn: boolean;
 }
 
 export interface ChordInspectorPanelProps {

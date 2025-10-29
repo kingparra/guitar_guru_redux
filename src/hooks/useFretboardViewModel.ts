@@ -40,6 +40,22 @@ export const useFretboardViewModel = (params: ViewModelParams) => {
     const layout = useFretboardLayout(fretRange, numStrings);
     const { getX, getY } = layout;
 
+    const allRenderableNotes = useMemo(() => {
+        const notesMap = new Map<string, DiagramNote>();
+        notesOnFretboard.forEach(note => {
+            notesMap.set(`${note.string}_${note.fret}`, note);
+        });
+
+        // In chat mode, AI notes can override or add to the base notes
+        if (studioMode === 'chat' && aiNotes) {
+            aiNotes.forEach(aiNote => {
+                notesMap.set(`${aiNote.string}_${aiNote.fret}`, aiNote);
+            });
+        }
+        return Array.from(notesMap.values());
+    }, [notesOnFretboard, aiNotes, studioMode]);
+
+
     const activeLayerNotes = useMemo(() => {
         if (studioMode === 'run' && diagonalRun) return new Set(diagonalRun.map(n => `${n.string}_${n.fret}`));
         if (studioMode === 'inspector' && selectedChord) {
@@ -87,23 +103,31 @@ export const useFretboardViewModel = (params: ViewModelParams) => {
 
 
     const notes = useMemo((): FretboardNoteViewModel[] => {
-        return notesOnFretboard
+        return allRenderableNotes
             .filter(note => typeof note.fret === 'number' && note.fret > 0)
             .map(note => {
                 const noteKey = `${note.string}_${note.fret}`;
                 const isInLayer = displayNotes?.has(noteKey) ?? true;
 
-                // Determine display text
-                let displayText = note.noteName ?? '';
-                const sequenceNumber = runSequenceLookup.get(noteKey);
-                if (studioMode === 'run' && sequenceNumber) {
-                    displayText = sequenceNumber.toString();
-                } else if (isInLayer) {
-                    const finger = fingeringMap?.get(noteKey);
-                    if ((studioMode === 'positions' || studioMode === 'inspector') && finger) {
-                        displayText = finger;
-                    } else if (studioMode === 'anchor' && note.degree) {
-                        displayText = note.degree;
+                // Determine display text with custom text override
+                let displayText: string;
+                if (note.displayText) {
+                    displayText = note.displayText;
+                } else {
+                    const sequenceNumber = runSequenceLookup.get(noteKey);
+                    if (studioMode === 'run' && sequenceNumber) {
+                        displayText = sequenceNumber.toString();
+                    } else if (isInLayer) {
+                        const finger = fingeringMap?.get(noteKey);
+                        if ((studioMode === 'positions' || studioMode === 'inspector') && finger) {
+                            displayText = finger;
+                        } else if (studioMode === 'anchor' && note.degree) {
+                            displayText = note.degree;
+                        } else {
+                            displayText = note.noteName ?? '';
+                        }
+                    } else {
+                        displayText = note.noteName ?? '';
                     }
                 }
                 
@@ -117,7 +141,7 @@ export const useFretboardViewModel = (params: ViewModelParams) => {
                     highlightState = 'anchor';
                 } else if (highlightedPitch && highlightedPitch.noteName === note.noteName && highlightedPitch.octave === octave) {
                     highlightState = 'pitch';
-                } else if (highlightedNotes?.includes(note.noteName ?? '')) {
+                } else if (!highlightedPitch && highlightedNotes?.includes(note.noteName ?? '')) {
                     highlightState = 'pitch';
                 } else if (tensionNotes?.includes(note.noteName || '') && displayNotes?.has(noteKey)) {
                     highlightState = 'tension';
@@ -143,7 +167,7 @@ export const useFretboardViewModel = (params: ViewModelParams) => {
                     onClick: () => onNoteClick(note),
                 };
             });
-    }, [notesOnFretboard, getX, getY, displayNotes, studioMode, runSequenceLookup, fingeringMap, playbackNote, anchorNote, highlightedPitch, highlightedNotes, tensionNotes, characteristicDegrees, onNoteClick]);
+    }, [allRenderableNotes, getX, getY, displayNotes, studioMode, runSequenceLookup, fingeringMap, playbackNote, anchorNote, highlightedPitch, highlightedNotes, tensionNotes, characteristicDegrees, onNoteClick]);
     
     const barres = (studioMode === 'inspector' && selectedVoicingIndex >= 0) ? selectedChord?.voicings[selectedVoicingIndex]?.barres || [] : [];
     const openStrings = useMemo(() => {

@@ -2,6 +2,8 @@
 
 
 
+
+
 import { GoogleGenAI, FunctionDeclaration, Type } from '@google/genai';
 import type {
     Song, Tutorial, CreativeVideo, JamTrack,
@@ -36,9 +38,9 @@ const callApi = async <T>(prompt: string): Promise<T> => {
     }
 };
 
-const displayNotesOnFretboard: FunctionDeclaration = {
+export const displayNotesOnFretboard: FunctionDeclaration = {
     name: 'displayNotesOnFretboard',
-    description: 'Displays a set of notes on the guitar fretboard diagram for the user to see.',
+    description: 'Displays a set of notes on the guitar fretboard diagram for the user to see. Can also be used to label notes with custom text.',
     parameters: {
         type: Type.OBJECT,
         properties: {
@@ -53,6 +55,7 @@ const displayNotesOnFretboard: FunctionDeclaration = {
                         noteName: { type: Type.STRING, description: 'Optional name of the note, e.g., "G#".' },
                         degree: { type: Type.STRING, description: 'Optional scale degree, e.g., "b3".' },
                         finger: { type: Type.STRING, description: 'Optional suggested fingering.' },
+                        displayText: { type: Type.STRING, description: 'Optional custom text to display inside the note marker, overriding the default.'}
                     },
                     required: ['string', 'fret'],
                 },
@@ -62,12 +65,7 @@ const displayNotesOnFretboard: FunctionDeclaration = {
     },
 };
 
-interface ChatMessage {
-    role: 'user' | 'model';
-    text: string;
-}
-
-const HAND_MECHANICS_CONTEXT = `
+export const HAND_MECHANICS_CONTEXT = `
 # Hand Mechanics & Ergonomic Pathfinding
 
 This document outlines the biomechanical principles that govern the application's logic for generating ergonomic fingerings and paths on the fretboard. The goal is to create fingerings that are not just technically correct, but also comfortable, efficient, and musically practical.
@@ -80,73 +78,6 @@ The model is based on simplifying the complex movements of the fretting hand int
 2.  **Positional Play is Primary:** Guitarists think in "positions" or "boxes." Large melodic leaps are achieved by shifting the entire hand position, not by large, inefficient stretches within a single position.
 3.  **Conservation of Motion:** The most ergonomic path is the one that requires the least amount of total physical effort. This means minimizing large, rapid shifts, awkward cross-string jumps, and unnecessary stretches.
 `;
-
-
-export const getFretboardChatResponse = async (
-    history: ChatMessage[],
-    scaleData: ScaleData,
-    rootNote: string,
-    scaleName: string,
-    clickedNote: ClickedNote | null
-): Promise<{ text: string; visualization?: DiagramNote[] }> => {
-     if (!process.env.API_KEY) {
-        throw new Error('API_KEY environment variable not set');
-    }
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-    const systemInstruction = `You are Guitar Scale Guru, an expert music theorist, composer, and seasoned guitarist. You are chatting with a user who is viewing an interactive fretboard. Your primary goal is to answer their questions about music theory and help them visualize concepts on the fretboard. Your tone should be encouraging, knowledgeable, and practical, like a friendly mentor.
-
-When a user asks you to show them something (e.g., 'show me an arpeggio', 'where are the notes of a C major chord?'), you MUST use the \`displayNotesOnFretboard\` tool to display the notes. For all other conversational questions, respond with helpful, insightful text.
-
-CURRENT CONTEXT:
-- The user is currently viewing the ${rootNote} ${scaleName} scale.
-- The last note the user clicked on was: ${clickedNote ? `${clickedNote.noteName} at octave ${clickedNote.octave}` : 'None'}. You can use this to provide more specific suggestions based on this anchor.
-- Here are some of the notes available in the current scale on the fretboard: ${JSON.stringify(scaleData.diagramData.notesOnFretboard.slice(0, 50))}... and many more up the neck. Use this data to find valid string/fret locations for your visualizations.
-
-ERGONOMIC PRINCIPLES:
-When giving advice on fingering or playing, keep these biomechanical principles in mind. This is how the application generates its own fingerings:
-${HAND_MECHANICS_CONTEXT}
-
-Your goal is to be a true guru. Provide not just the 'what' but the 'why'. Explain the musical function of the concepts you're showing.`;
-
-    const contents = history.map(msg => ({
-        role: msg.role,
-        parts: [{ text: msg.text }],
-    }));
-
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-pro',
-        contents: {
-            role: 'user', 
-            parts: [{text: history[history.length - 1].text}]
-        },
-        config: {
-            systemInstruction: systemInstruction,
-            tools: [{ functionDeclarations: [displayNotesOnFretboard] }],
-        },
-    });
-
-    const functionCalls = response.functionCalls;
-    let text = response.text;
-    let visualization;
-
-    if (functionCalls && functionCalls.length > 0) {
-        const call = functionCalls[0];
-        if (call.name === 'displayNotesOnFretboard') {
-            visualization = call.args.notes as DiagramNote[];
-            if (!text) {
-                text = `Sure, here are the notes you asked for. I've highlighted them on the fretboard.`;
-            }
-        }
-    }
-
-    if (!text) {
-        text = "I'm not sure how to respond to that. Can you try rephrasing?";
-    }
-
-    return { text, visualization };
-};
-
 
 export const generateListeningGuide = (rootNote: string, scaleName: string): Promise<Song[]> => {
     return callApi<Song[]>(getListeningGuidePrompt(rootNote, scaleName));

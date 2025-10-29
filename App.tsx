@@ -1,5 +1,7 @@
 
 
+
+
 import React, { useState, useRef, useEffect } from 'react';
 import type {
     SongAnalysisResult,
@@ -45,6 +47,7 @@ const App: React.FC = () => {
     const [cache, setCache] = useState<AppCache>({});
     const [clickedNote, setClickedNote] = useState<ClickedNote | null>(null);
     const [isSustainOn, setIsSustainOn] = useState(false);
+    const [isOctaveColorOn, setIsOctaveColorOn] = useState(false);
 
     // Tab Player State
     const [activePath, setActivePath] = useState<PathDiagramNote[] | null>(null);
@@ -151,6 +154,10 @@ const App: React.FC = () => {
             stopSustainedNote();
         }
         setIsSustainOn(!isSustainOn);
+    };
+
+    const handleOctaveColorToggle = () => {
+        setIsOctaveColorOn(prev => !prev);
     };
 
     const handleChordHover = (notes: string[]) => {
@@ -289,6 +296,8 @@ const App: React.FC = () => {
                                 isPlayingExercise={isPlayingExercise}
                                 playbackSpeed={playbackSpeed}
                                 onPlaybackSpeedChange={setPlaybackSpeed}
+                                isOctaveColorOn={isOctaveColorOn}
+                                onOctaveColorToggle={handleOctaveColorToggle}
                             />
                         </div>
                     </div>

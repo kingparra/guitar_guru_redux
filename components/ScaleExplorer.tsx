@@ -1,6 +1,8 @@
 
 
 
+
+
 import React from 'react';
 import type {
     ScaleExplorerProps,
@@ -72,6 +74,8 @@ const ScaleExplorer: React.FC<ScaleExplorerProps> = (props) => {
         isPlayingExercise,
         playbackSpeed,
         onPlaybackSpeedChange,
+        isOctaveColorOn,
+        onOctaveColorToggle,
     } = props;
     
     // Derived playback index from the playback note and active path
@@ -197,15 +201,31 @@ const ScaleExplorer: React.FC<ScaleExplorerProps> = (props) => {
     return (
         <div className="space-y-8">
             <Section title="Fretboard Studio" icon={<DiagramsIcon />}>
-                <DiagramsSection {...props} diagramData={clientData.diagramData} />
+                <DiagramsSection 
+                    {...props}
+                    diagramData={clientData.diagramData} 
+                    isOctaveColorOn={isOctaveColorOn}
+                    onOctaveColorToggle={onOctaveColorToggle}
+                />
             </Section>
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 <div className="lg:col-span-3">
-                    <PianoKeyboard onKeyClick={onPianoKeyClick} clickedNote={clickedNote} playbackNote={playbackNote} />
+                    <PianoKeyboard 
+                        onKeyClick={onPianoKeyClick} 
+                        clickedNote={clickedNote} 
+                        playbackNote={playbackNote} 
+                        isOctaveColorOn={isOctaveColorOn}
+                    />
                 </div>
                 <div className="lg:col-span-1">
-                    <NotationPanel clickedNote={clickedNote} isSustainOn={isSustainOn} onSustainToggle={onSustainToggle} playbackNote={playbackNote} />
+                    <NotationPanel 
+                        clickedNote={clickedNote} 
+                        isSustainOn={isSustainOn} 
+                        onSustainToggle={onSustainToggle} 
+                        playbackNote={playbackNote} 
+                        isOctaveColorOn={isOctaveColorOn}
+                    />
                 </div>
             </div>
 

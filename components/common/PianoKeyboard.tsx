@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import type { PianoKeyboardProps, DiagramNote, ClickedNote } from '../../types';
 import { getOctaveForNote } from '../../utils/musicUtils';
+import { OCTAVE_COLORS } from '../../constants';
 
 type KeyInfo = { note: string; octave: number; type: 'white' | 'black' };
 
@@ -38,7 +39,7 @@ const pianoKeys = generatePianoKeys();
 const whiteKeys = pianoKeys.filter(k => k.type === 'white');
 const blackKeys = pianoKeys.filter(k => k.type === 'black');
 
-const PianoKeyboard: React.FC<PianoKeyboardProps> = ({ onKeyClick, clickedNote, playbackNote }) => {
+const PianoKeyboard: React.FC<PianoKeyboardProps> = ({ onKeyClick, clickedNote, playbackNote, isOctaveColorOn }) => {
     const noteToHighlight = useMemo(() => diagramNoteToClickedNote(playbackNote) || clickedNote, [playbackNote, clickedNote]);
     
     const isKeyActive = (noteName: string, octave: number) => {
@@ -61,32 +62,46 @@ const PianoKeyboard: React.FC<PianoKeyboardProps> = ({ onKeyClick, clickedNote, 
             <div className="relative w-full h-48">
                 {/* White Keys */}
                 <div className="flex w-full h-full">
-                    {whiteKeys.map(({ note, octave }) => (
-                        <button
-                            key={`${note}${octave}`}
-                            title={`${note}${octave}`}
-                            onClick={() => onKeyClick(note, octave)}
-                            className={`flex-1 h-full border-x border-gray-800 rounded-b-sm transition-colors ${
-                                isKeyActive(note, octave) ? 'bg-cyan-400' : 'bg-white'
-                            }`}
-                        ></button>
-                    ))}
+                    {whiteKeys.map(({ note, octave }) => {
+                        const isActive = isKeyActive(note, octave);
+                        const activeColor = isOctaveColorOn ? (OCTAVE_COLORS[octave] || OCTAVE_COLORS[6]) : '#00FFFF';
+                        const style = isActive ? { backgroundColor: activeColor } : {};
+                        return (
+                            <button
+                                key={`${note}${octave}`}
+                                title={`${note}${octave}`}
+                                onClick={() => onKeyClick(note, octave)}
+                                style={style}
+                                className={`flex-1 h-full border-x border-gray-800 rounded-b-sm transition-colors ${!isActive ? 'bg-white' : ''}`}
+                            ></button>
+                        )
+                    })}
                 </div>
                 {/* Black Keys */}
-                {blackKeyPositions.map(({ key, left }) => (
-                    <button
-                        key={`${key.note}${key.octave}`}
-                        title={`${key.note}${key.octave}`}
-                        onClick={() => onKeyClick(key.note, key.octave)}
-                        className={`h-2/3 border border-black absolute z-10 top-0 -translate-x-1/2 transition-colors hover:bg-gray-600 ${
-                            isKeyActive(key.note, key.octave) ? 'bg-cyan-400 border-cyan-300' : 'bg-gray-800'
-                        }`}
-                        style={{
-                            width: `${whiteKeyWidthPercent * 0.7}%`,
-                            left: `${left}%`
-                        }}
-                    ></button>
-                ))}
+                {blackKeyPositions.map(({ key, left }) => {
+                    const isActive = isKeyActive(key.note, key.octave);
+                    const activeColor = isOctaveColorOn ? (OCTAVE_COLORS[key.octave] || OCTAVE_COLORS[6]) : '#00FFFF';
+                    const style: React.CSSProperties = {
+                        width: `${whiteKeyWidthPercent * 0.7}%`,
+                        left: `${left}%`
+                    };
+                    if (isActive) {
+                        style.backgroundColor = activeColor;
+                        style.borderColor = '#00FFFF'; // Add border to active black keys
+                    }
+
+                    return (
+                        <button
+                            key={`${key.note}${key.octave}`}
+                            title={`${key.note}${key.octave}`}
+                            onClick={() => onKeyClick(key.note, key.octave)}
+                            className={`h-2/3 border border-black absolute z-10 top-0 -translate-x-1/2 transition-colors hover:bg-gray-600 ${
+                                !isActive ? 'bg-gray-800' : ''
+                            }`}
+                            style={style}
+                        ></button>
+                    );
+                })}
             </div>
         </div>
     );

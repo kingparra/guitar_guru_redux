@@ -2,6 +2,8 @@
 
 
 
+
+
 import React, { useMemo, useState, useEffect } from 'react';
 // FIX: Import Chord type to be used in the client-side logic.
 import type { DiagramsSectionProps, StudioMode, ChordInspectorData, AnchorNoteContext, DiagramNote, Chord, ClickedNote } from '../../types';
@@ -20,14 +22,13 @@ import ChatPanel from '../common/ChatPanel';
 
 const DiagramsSection: React.FC<DiagramsSectionProps> = React.memo(({ 
     diagramData, fontSize, rootNote, scaleName, highlightedNotes, highlightedPitch, onNoteClick, clientData, clickedNote, isSustainOn, onSustainToggle, onPianoKeyClick,
-    playbackNote, activePath
+    playbackNote, activePath, isOctaveColorOn, onOctaveColorToggle
 }) => {
     const fontScaleValue = parseFloat(FONT_SIZES[fontSize].replace('rem', ''));
     const { notesOnFretboard, fingering, diagonalRun, characteristicDegrees } = diagramData;
 
     // Studio Mode State
     const [studioMode, setStudioMode] = useState<StudioMode>(null);
-    const [isOctaveColorOn, setIsOctaveColorOn] = useState(false);
     
     // Layer-specific state
     const [selectedChordName, setSelectedChordName] = useState<string | null>(null);
@@ -277,7 +278,7 @@ const DiagramsSection: React.FC<DiagramsSectionProps> = React.memo(({
                 selectedPositionIndex={selectedPositionIndex}
                 onPositionChange={setSelectedPositionIndex}
                 isOctaveColorOn={isOctaveColorOn}
-                onOctaveColorToggle={() => setIsOctaveColorOn(prev => !prev)}
+                onOctaveColorToggle={onOctaveColorToggle}
             />
             
             {studioMode === 'inspector' && (

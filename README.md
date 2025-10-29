@@ -2,17 +2,63 @@
 
 An interactive, AI-powered learning tool for the modern 7-string guitarist. This application provides a "Fretboard Studio" for deep exploration of scales, including interactive diagrams, harmonic analysis, and AI-generated creative exercises.
 
-## Core Features
+![Fretboard Studio UI](./screenshots/studio-overview.png)
 
--   **Dynamic Scale Generation:** Generates diagrams and data for any standard scale in any key on a 7-string, 24-fret guitar.
--   **Interactive Fretboard Studio:** A central hub for visualizing scales, positions, chord voicings, and melodic paths.
--   **AI-Powered Content:** Utilizes the Gemini API to generate:
-    -   Listening guides, tutorials, and jam tracks.
-    -   Comprehensive, musical, and technically exhaustive creative etudes.
-    -   Harmonic analysis of chords within the scale's context.
--   **Notation Analyzer:** Upload an image or PDF of sheet music, and the AI will identify the key and suggest relevant scales.
--   **Robust Fallback System:** Includes a procedural fallback generator that creates high-quality, systematic etudes for any scale if the AI is unavailable.
--   **PDF Export:** Save a complete-scale "one-sheet" for offline practice.
+## Features In-Depth
+
+### Interactive Fretboard Studio
+The "Fretboard Studio" is the central hub of the application. It provides a seamless, integrated workspace for musical exploration without pop-ups or separate pages.
+
+*   **Dynamic Scale Generation:** Generates diagrams and data for dozens of scales in any key on a 7-string, 24-fret guitar.
+*   **Full Fretboard View:** Always see the entire neck to understand the context of patterns and positions.
+*   **Interactive Piano & Notation:** Click a note on the fretboard, and see it instantly reflected on a full 88-key piano and in standard music notation.
+*   **Audio Playback:** Hear any note you click, with an optional sustain mode for checking intervals and harmonies.
+
+### Studio Modes: Layers of Insight
+Activate different "Studio Modes" to overlay powerful, context-aware information directly onto the main fretboard diagram.
+
+#### Anchor Note System
+Click the "Anchor Note" button and then select any note on the fretboard. The app instantly reveals the harmonic function of that note within the current key, showing you which diatonic chords it belongs to and what its role is (root, third, fifth, etc.). Select a context to see the corresponding arpeggio highlighted.
+
+![Anchor Note System](./screenshots/anchor-note.png)
+
+#### Diagonal Run
+Visualize a continuous, ergonomic path that traverses the entire fretboard, connecting every note of the scale. This feature helps break out of 'box' patterns and see the neck as a single, connected entity.
+
+![Diagonal Run](./screenshots/diagonal-run.png)
+
+#### Chord Inspector
+Select any diatonic chord from the current key. The inspector highlights all of its chord tones across the neck. You can cycle through specific, playable voicings or view all available chord tones. The AI also provides an analysis of which notes from the parent scale can be used as tensions (e.g., 9ths, 13ths) over that chord.
+
+![Chord Inspector](./screenshots/chord-inspector.png)
+
+#### Scale Positions
+Cycle through 5-7 standard, ergonomic fingering patterns ("positions" or "boxes") for the scale. Each position is displayed with clear fingering numbers, helping you master the scale all over the neck.
+
+![Scale Positions](./screenshots/scale-positions.png)
+
+#### AI Fretboard Assistant
+Open a chat panel and talk directly to a music theory expert AI. Ask it to "show me a G major arpeggio," "label the scale degrees," or "create a simple melody using these three notes," and it will visualize the answer directly on the fretboard for you.
+
+![AI Chat](./screenshots/ai-chat.png)
+
+### AI-Generated Creative Exercises
+Go beyond mechanical drills. The AI composes two unique, full-fretboard etudes for every scale, designed to be both musical and technically challenging.
+*   **Diatonic Arpeggiation Etude:** Focuses on connecting scale positions using the notes of the underlying chords.
+*   **Melodic Motif Etude:** Develops a short melodic idea and applies it systematically across the neck.
+Both exercises come with interactive tablature, note playback, and speed controls.
+
+![Creative Exercises](./screenshots/creative-exercises.png)
+
+### Notation Analyzer
+Have a piece of sheet music you want to improvise over? Upload a PDF or an image of the score. The AI will analyze the key signature, harmony, and melody to suggest the most appropriate scales to use, complete with theoretical justifications.
+
+![Notation Analyzer](./screenshots/notation-analyzer.png)
+
+### Comprehensive Resources & PDF Export
+For each scale, the AI curates a list of relevant learning resources. When you're done, you can generate a clean, printable PDF "one-sheet" of the entire scale, including diagrams and resources, for offline practice.
+
+![Resources and PDF Export](./screenshots/resources.png)
 
 ## Tech Stack
 
