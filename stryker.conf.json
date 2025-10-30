@@ -1,0 +1,16 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "mutate": ["src/**/*.ts", "src/**/*.tsx", "components/**/*.ts", "components/**/*.tsx", "utils/**/*.ts", "utils/**/*.tsx"],
+  "testRunner": "command",
+  "commandRunner": {
+    "command": "pnpm test"
+  },
+  "reporters": ["clear-text", "progress", "html"],
+  "concurrency": 2,
+  "timeoutMS": 5000,
+  "thresholds": {
+    "break": 50,
+    "high": 80,
+    "low": 60
+  }
+}
