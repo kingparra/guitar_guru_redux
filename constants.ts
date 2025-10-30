@@ -58,13 +58,15 @@ export const COLORS = {
 };
 
 export const OCTAVE_COLORS: Record<number, string> = {
-    0: '#581c87', // purple-800
-    1: '#581c87', // purple-800
-    2: '#1d4ed8', // blue-700
-    3: '#047857', // emerald-600
-    4: '#facc15', // yellow-400
-    5: '#f97316', // orange-500
-    6: '#dc2626', // red-600
+    // Even more subdued / darker octave palette
+    // These are lower-saturation, slightly darker tones to reduce perceived brightness
+    0: '#413049', // deep muted purple
+    1: '#534156', // soft desaturated violet
+    2: '#2b486a', // darker, desaturated blue
+    3: '#2a5b52', // deep muted teal
+    4: '#998f3a', // muted mustard (less luminous)
+    5: '#855c3c', // warm desaturated brownish-orange
+    6: '#6b2e2e', // deep muted red
 };
 
 export const DEGREE_COLORS: Record<string, string> = {
