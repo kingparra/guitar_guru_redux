@@ -22,18 +22,39 @@ const FretboardNote: React.FC<FretboardNoteProps> = React.memo(({
     const opacity = isInLayer ? 1.0 : 0.2;
     const textColor = COLORS.bgPrimary;
 
-    // Determine the single text to display based on priority
-    let displayText = note.noteName ?? '';
-    // The "run" is a special overlay that should always take display priority.
-    if (noteDisplayMode === 'sequence' && sequenceNumber) {
-        displayText = sequenceNumber.toString();
-    } 
-    // For other modes, only show the special text if the note is part of the active layer.
-    else if (isInLayer) {
-        if (noteDisplayMode === 'finger' && note.finger) {
+    // Determine the single text to display based on studio mode and whether the
+    // note is part of the active/highlighted layer (isInLayer).
+    let displayText = '';
+
+    // If the note is muted we already returned 'x' earlier.
+    // Priority rules from the user's request:
+    // - In 'run' (diagonal run) mode: highlighted frettings show the sequence number.
+    // - In 'anchor', 'inspector', and 'positions' modes: highlighted frettings show the note name.
+    // - In 'inspector' mode additionally render a small interval/tag next to the fretting.
+    if (studioMode === 'run') {
+        if (isInLayer && sequenceNumber !== undefined && sequenceNumber !== null) {
+            displayText = sequenceNumber.toString();
+        } else if (noteDisplayMode === 'finger' && note.finger) {
             displayText = note.finger;
-        } else if (noteDisplayMode === 'degree' && note.degree) {
-            displayText = note.degree;
+        }
+    } else if (studioMode === 'anchor' || studioMode === 'inspector' || studioMode === 'positions') {
+        if (isInLayer) {
+            // Always prefer the note name for highlighted notes in these modes
+            displayText = note.noteName ?? '';
+        } else {
+            // Non-highlighted notes fall back to configured display modes
+            if (noteDisplayMode === 'finger' && note.finger) displayText = note.finger;
+            else if (noteDisplayMode === 'degree' && note.degree) displayText = note.degree;
+            else displayText = note.noteName ?? '';
+        }
+    } else {
+        // Default behavior for other modes: follow noteDisplayMode if in layer
+        if (isInLayer) {
+            if (noteDisplayMode === 'finger' && note.finger) displayText = note.finger;
+            else if (noteDisplayMode === 'degree' && note.degree) displayText = note.degree;
+            else displayText = note.noteName ?? '';
+        } else {
+            displayText = note.noteName ?? '';
         }
     }
 
@@ -80,6 +101,58 @@ const FretboardNote: React.FC<FretboardNoteProps> = React.memo(({
             <text x={x} y={y} textAnchor="middle" dy="0.35em" fontSize={noteFontSize * fontScale} fill={textColor} fontWeight="bold" style={{ pointerEvents: 'none' }}>
                 {displayText}
             </text>
+
+            {/* Chord Inspector interval/tag: render a small rounded rect with degree text to the right of the marker */}
+            {studioMode === 'inspector' && isInLayer && note.degree && (
+                <g pointerEvents="none">
+                    {/* calculate pill size so text stays inside */}
+                    {
+                        (() => {
+                            const tagFontSize = 12 * fontScale;
+                            const paddingX = 6 * fontScale;
+                            const paddingY = 4 * fontScale;
+                            const approxCharWidth = tagFontSize * 0.6; // rough estimate per char
+                            const textWidth = Math.max(tagFontSize, note.degree.length * approxCharWidth);
+                            const rectWidth = textWidth + paddingX * 2;
+                            const rectHeight = tagFontSize + paddingY * 2;
+                            const gap = 6 * fontScale; // space between circle and pill
+                            const rectX = x + r + gap;
+                            const rectY = y - rectHeight / 2;
+                            const textX = rectX + rectWidth / 2;
+                            const textY = y; // use dominantBaseline to center vertically
+
+                            return (
+                                <g>
+                                    <rect
+                                        x={rectX}
+                                        y={rectY}
+                                        rx={rectHeight / 2}
+                                        ry={rectHeight / 2}
+                                        width={rectWidth}
+                                        height={rectHeight}
+                                        fill={COLORS.bgInput}
+                                        stroke={COLORS.characteristicOutline}
+                                        strokeWidth={1}
+                                        opacity={0.95}
+                                    />
+                                    <text
+                                        x={textX}
+                                        y={textY}
+                                        textAnchor="middle"
+                                        dominantBaseline="middle"
+                                        fontSize={tagFontSize}
+                                        fill={COLORS.textPrimary}
+                                        fontWeight={600}
+                                        style={{ pointerEvents: 'none' }}
+                                    >
+                                        {note.degree}
+                                    </text>
+                                </g>
+                            );
+                        })()
+                    }
+                </g>
+            )}
         </g>
     );
 });
