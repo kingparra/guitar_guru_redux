@@ -200,7 +200,7 @@ const ScaleExplorer: React.FC<ScaleExplorerProps> = (props) => {
 
     return (
         <div className="space-y-8">
-            <Section title="Fretboard Studio" icon={<DiagramsIcon />}>
+            <Section id={props.sectionIds?.fretboard} title="Fretboard Studio" icon={<DiagramsIcon />}>
                 <DiagramsSection 
                     {...props}
                     diagramData={clientData.diagramData} 

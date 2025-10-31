@@ -14,6 +14,7 @@ import { usePdfGenerator } from './hooks/usePdfGenerator';
 const sectionIds: Record<string, string> = {
     resources: 'section-resources',
     creativeExercises: 'section-creative-exercises',
+    fretboard: 'section-fretboard',
 };
 
 const AppContent: React.FC = () => {
