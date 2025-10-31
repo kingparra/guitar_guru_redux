@@ -31,6 +31,13 @@ import NotationPanel from './common/NotationPanel';
 import PianoKeyboard from './common/PianoKeyboard';
 import CreativeExercisesSection from './scaleExplorerSections/CreativeExercisesSection';
 
+// Canonical nav titles for sections
+export const NAV_SECTION_TITLES: Record<string, string> = {
+    creativeExercises: 'Creative Exercises',
+    resources: 'Resources',
+    fretboard: 'Fretboard Studio',
+};
+
 const WelcomeState: React.FC<{ sectionIds?: Record<string,string> }> = ({ sectionIds }) => (
     <>
         {/* Hidden section anchor so nav can discover the Fretboard Studio title even before content loads */}
