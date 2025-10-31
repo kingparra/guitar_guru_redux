@@ -21,6 +21,8 @@ interface ControlPanelProps {
     isAnalyzerVisible: boolean;
     onToggleAnalyzer: () => void;
     sectionIds: Record<string, string>;
+    // Optional mapping of section keys -> display titles for nav/search
+    navSections?: Record<string, string>;
 }
 
 const scaleNames = Object.keys(SCALE_FORMULAS);
@@ -45,15 +47,32 @@ const SetupMode: React.FC<Omit<ControlPanelProps, 'hasContent' | 'sectionIds' | 
     </>
 );
 
-const NavigationMode: React.FC<{ sectionIds: Record<string, string>, onSwitchToSetup: () => void }> = ({ sectionIds, onSwitchToSetup }) => {
+const NavigationMode: React.FC<{ sectionIds: Record<string, string>, navSections?: Record<string, string>, onSwitchToSetup: () => void }> = ({ sectionIds, navSections, onSwitchToSetup }) => {
     const scrollToSection = (id: string) => {
         document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
-    const navItems = [
-        { id: sectionIds.creativeExercises, label: 'Creative Exercises' },
-        { id: sectionIds.resources, label: 'Resources' },
-    ];
+    // Build nav items automatically from provided sectionIds + navSections titles
+    const navItems = Object.keys(sectionIds).map(key => ({ id: sectionIds[key], label: navSections?.[key] ?? key }));
+
+    // Simple fuzzy filter: score by substring match and index
+    const fuzzyMatch = (term: string, items: { id: string; label: string }[]) => {
+        const t = term.trim().toLowerCase();
+        if (!t) return items;
+        return items
+            .map(item => {
+                const label = item.label.toLowerCase();
+                const idx = label.indexOf(t);
+                const score = idx === -1 ? Infinity : idx;
+                return { item, score };
+            })
+            .filter(x => x.score !== Infinity)
+            .sort((a, b) => a.score - b.score)
+            .map(x => x.item);
+    };
+
+    const [query, setQuery] = React.useState('');
+    const filtered = fuzzyMatch(query, navItems);
 
     return (
         <>
@@ -62,8 +81,17 @@ const NavigationMode: React.FC<{ sectionIds: Record<string, string>, onSwitchToS
                 New Scale
             </button>
             <div className="h-6 w-px bg-purple-400/20 mx-2"></div>
-            {navItems.map(item => (
-                <button key={item.id} onClick={() => scrollToSection(item.id)} className="text-gray-300 hover:text-cyan-400 font-semibold transition-colors px-3 py-1 text-sm">
+            <div className="flex items-center gap-2">
+                <input
+                    aria-label="Jump to section"
+                    placeholder="Jump to..."
+                    className="px-2 py-1 rounded-md bg-[#0f0d1b]/60 text-sm text-gray-100 border border-purple-400/20 w-40"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                />
+            </div>
+            {filtered.map(item => (
+                <button key={item.id} onClick={() => { scrollToSection(item.id); setQuery(''); }} className="text-gray-300 hover:text-cyan-400 font-semibold transition-colors px-3 py-1 text-sm">
                     {item.label}
                 </button>
             ))}
@@ -83,7 +111,7 @@ const ControlPanel: React.FC<ControlPanelProps> = (props) => {
     return (
         <div className="sticky top-4 z-10 bg-[#171528]/80 backdrop-blur-md p-2 rounded-xl shadow-2xl border border-purple-400/30">
             <div className="flex items-center gap-2 flex-wrap">
-                {isSetupMode ? <SetupMode {...props} /> : <NavigationMode sectionIds={props.sectionIds} onSwitchToSetup={() => setIsSetupMode(true)} />}
+                {isSetupMode ? <SetupMode {...props} /> : <NavigationMode sectionIds={props.sectionIds} navSections={props.navSections} onSwitchToSetup={() => setIsSetupMode(true)} />}
 
                 <div className="flex-grow"></div>
 
