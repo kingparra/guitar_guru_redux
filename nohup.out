@@ -48,3 +48,435 @@ To see a list of supported npm commands, run:
   ➜  Network: http://192.168.1.65:3000/
 1:38:15 AM [vite] (client) hmr update /App.tsx, /components/common/NotationPanel.tsx, /components/common/PianoKeyboard.tsx, /components/FretboardDiagram.tsx, /components/common/AnchorContextPanel.tsx, /components/NotationAnalyzer.tsx, /components/common/Footer.tsx, /components/ControlPanel.tsx, /components/PdfDocument.tsx, /components/ScaleExplorer.tsx, /components/common/SectionPlaceholder.tsx, /components/scaleExplorerSections/DiagramsSection.tsx, /components/common/ChatPanel.tsx, /components/common/StructuredTabDisplay.tsx, /components/common/DiagramLegend.tsx, /components/common/ChordInspectorPanel.tsx, /components/FretboardNote.tsx
 1:47:10 AM [vite] (client) hmr update /components/FretboardNote.tsx
+2:08:27 AM [vite] (client) hmr update /components/ControlPanel.tsx
+2:09:58 AM [vite] (client) hmr update /components/ScaleExplorer.tsx
+2:11:39 AM [vite] (client) hmr update /components/ControlPanel.tsx
+2:12:52 AM [vite] (client) hmr update /components/common/Section.tsx
+2:13:03 AM [vite] (client) hmr update /components/ControlPanel.tsx
+2:14:37 AM [vite] (client) hmr update /components/ControlPanel.tsx
+2:14:45 AM [vite] (client) hmr update /components/ControlPanel.tsx
+2:14:49 AM [vite] (client) hmr update /components/ControlPanel.tsx
+2:15:53 AM [vite] (client) hmr update /components/ScaleExplorer.tsx
+2:15:58 AM [vite] (client) hmr update /components/ScaleExplorer.tsx
+2:17:21 AM [vite] (client) hmr update /components/ScaleExplorer.tsx
+2:17:21 AM [vite] Internal server error: /var/home/chris/Projects/guitar_guru_redux/components/ScaleExplorer.tsx: 'import' and 'export' may only appear at the top level. (167:0)
+
+  165 | // Export a central mapping of section display titles so other components (nav) can
+  166 | // reference the canonical labels instead of depending on DOM scraping.
+> 167 | export const NAV_SECTION_TITLES: Record<string, string> = {
+      | ^
+  168 |     creativeExercises: 'Creative Exercises',
+  169 |     resources: 'Resources',
+  170 |     fretboard: 'Fretboard Studio',
+  Plugin: vite:react-babel
+  File: /var/home/chris/Projects/guitar_guru_redux/components/ScaleExplorer.tsx:167:0
+  168|      creativeExercises: 'Creative Exercises',
+  169|      resources: 'Resources',
+  170|      fretboard: 'Fretboard Studio',
+     |                                   ^
+  171|  };
+  172|  
+      at constructor (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:367:19)
+      at TypeScriptParserMixin.raise (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:6624:19)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12947:18)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9569:18)
+      at TypeScriptParserMixin.parseStatementLike (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12843:17)
+      at TypeScriptParserMixin.parseStatementListItem (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12823:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13392:61)
+      at TypeScriptParserMixin.parseBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13385:10)
+      at TypeScriptParserMixin.parseBlock (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13373:10)
+      at TypeScriptParserMixin.parseFunctionBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12174:24)
+      at TypeScriptParserMixin.parseArrowExpression (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12149:10)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11759:12)
+      at TypeScriptParserMixin.parseExprAtom (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11395:23)
+      at TypeScriptParserMixin.parseExprAtom (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:4793:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9839:20)
+      at /var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10864:39
+      at TypeScriptParserMixin.allowInAnd (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12495:16)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10864:17)
+      at TypeScriptParserMixin.parseVar (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13460:91)
+      at TypeScriptParserMixin.parseVarStatement (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13306:10)
+      at TypeScriptParserMixin.parseVarStatement (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9469:31)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12927:23)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9569:18)
+      at TypeScriptParserMixin.parseStatementLike (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12843:17)
+      at TypeScriptParserMixin.parseModuleItem (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12820:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13392:36)
+      at TypeScriptParserMixin.parseBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13385:10)
+      at TypeScriptParserMixin.parseProgram (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12698:10)
+      at TypeScriptParserMixin.parseTopLevel (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12688:25)
+      at TypeScriptParserMixin.parse (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:14568:25)
+      at TypeScriptParserMixin.parse (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10183:18)
+      at parse (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:14602:38)
+      at parser (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/var/home/chris/Projects/guitar_guru_redux/node_modules/gensync/index.js:261:32)
+      at /var/home/chris/Projects/guitar_guru_redux/node_modules/gensync/index.js:273:13
+2:17:26 AM [vite] (client) hmr update /components/ScaleExplorer.tsx
+2:17:26 AM [vite] Internal server error: /var/home/chris/Projects/guitar_guru_redux/components/ScaleExplorer.tsx: 'import' and 'export' may only appear at the top level. (174:0)
+
+  172 | // Export a central mapping of section display titles so other components (nav) can
+  173 | // reference the canonical labels instead of depending on DOM scraping.
+> 174 | export const NAV_SECTION_TITLES: Record<string, string> = {
+      | ^
+  175 |     creativeExercises: 'Creative Exercises',
+  176 |     resources: 'Resources',
+  177 |     fretboard: 'Fretboard Studio',
+  Plugin: vite:react-babel
+  File: /var/home/chris/Projects/guitar_guru_redux/components/ScaleExplorer.tsx:174:0
+  179|  
+  180|  
+  181|      const { sections, isActive } = loadingState;
+     |  ^
+  182|  
+  183|      const renderSection = (key: SectionKey) => {
+      at constructor (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:367:19)
+      at TypeScriptParserMixin.raise (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:6624:19)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12947:18)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9569:18)
+      at TypeScriptParserMixin.parseStatementLike (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12843:17)
+      at TypeScriptParserMixin.parseStatementListItem (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12823:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13392:61)
+      at TypeScriptParserMixin.parseBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13385:10)
+      at TypeScriptParserMixin.parseBlock (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13373:10)
+      at TypeScriptParserMixin.parseFunctionBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12174:24)
+      at TypeScriptParserMixin.parseArrowExpression (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12149:10)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11759:12)
+      at TypeScriptParserMixin.parseExprAtom (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11395:23)
+      at TypeScriptParserMixin.parseExprAtom (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:4793:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9839:20)
+      at /var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10864:39
+      at TypeScriptParserMixin.allowInAnd (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12495:16)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10864:17)
+      at TypeScriptParserMixin.parseVar (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13460:91)
+      at TypeScriptParserMixin.parseVarStatement (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13306:10)
+      at TypeScriptParserMixin.parseVarStatement (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9469:31)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12927:23)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9569:18)
+      at TypeScriptParserMixin.parseStatementLike (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12843:17)
+      at TypeScriptParserMixin.parseModuleItem (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12820:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13392:36)
+      at TypeScriptParserMixin.parseBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13385:10)
+      at TypeScriptParserMixin.parseProgram (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12698:10)
+      at TypeScriptParserMixin.parseTopLevel (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12688:25)
+      at TypeScriptParserMixin.parse (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:14568:25)
+      at TypeScriptParserMixin.parse (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10183:18)
+      at parse (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:14602:38)
+      at parser (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/var/home/chris/Projects/guitar_guru_redux/node_modules/gensync/index.js:261:32)
+      at /var/home/chris/Projects/guitar_guru_redux/node_modules/gensync/index.js:273:13
+2:18:18 AM [vite] (client) Pre-transform error: /var/home/chris/Projects/guitar_guru_redux/components/ScaleExplorer.tsx: 'import' and 'export' may only appear at the top level. (174:0)
+
+  172 | // Export a central mapping of section display titles so other components (nav) can
+  173 | // reference the canonical labels instead of depending on DOM scraping.
+> 174 | export const NAV_SECTION_TITLES: Record<string, string> = {
+      | ^
+  175 |     creativeExercises: 'Creative Exercises',
+  176 |     resources: 'Resources',
+  177 |     fretboard: 'Fretboard Studio',
+  Plugin: vite:react-babel
+  File: /var/home/chris/Projects/guitar_guru_redux/components/ScaleExplorer.tsx:174:0
+  179|  
+  180|  
+  181|      const { sections, isActive } = loadingState;
+     |  ^
+  182|  
+  183|      const renderSection = (key: SectionKey) => {
+2:18:18 AM [vite] Internal server error: /var/home/chris/Projects/guitar_guru_redux/components/ScaleExplorer.tsx: 'import' and 'export' may only appear at the top level. (174:0)
+
+  172 | // Export a central mapping of section display titles so other components (nav) can
+  173 | // reference the canonical labels instead of depending on DOM scraping.
+> 174 | export const NAV_SECTION_TITLES: Record<string, string> = {
+      | ^
+  175 |     creativeExercises: 'Creative Exercises',
+  176 |     resources: 'Resources',
+  177 |     fretboard: 'Fretboard Studio',
+  Plugin: vite:react-babel
+  File: /var/home/chris/Projects/guitar_guru_redux/components/ScaleExplorer.tsx:174:0
+  179|  
+  180|  
+  181|      const { sections, isActive } = loadingState;
+     |  ^
+  182|  
+  183|      const renderSection = (key: SectionKey) => {
+      at constructor (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:367:19)
+      at TypeScriptParserMixin.raise (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:6624:19)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12947:18)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9569:18)
+      at TypeScriptParserMixin.parseStatementLike (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12843:17)
+      at TypeScriptParserMixin.parseStatementListItem (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12823:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13392:61)
+      at TypeScriptParserMixin.parseBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13385:10)
+      at TypeScriptParserMixin.parseBlock (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13373:10)
+      at TypeScriptParserMixin.parseFunctionBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12174:24)
+      at TypeScriptParserMixin.parseArrowExpression (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12149:10)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11759:12)
+      at TypeScriptParserMixin.parseExprAtom (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11395:23)
+      at TypeScriptParserMixin.parseExprAtom (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:4793:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9839:20)
+      at /var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10864:39
+      at TypeScriptParserMixin.allowInAnd (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12495:16)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10864:17)
+      at TypeScriptParserMixin.parseVar (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13460:91)
+      at TypeScriptParserMixin.parseVarStatement (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13306:10)
+      at TypeScriptParserMixin.parseVarStatement (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9469:31)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12927:23)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9569:18)
+      at TypeScriptParserMixin.parseStatementLike (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12843:17)
+      at TypeScriptParserMixin.parseModuleItem (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12820:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13392:36)
+      at TypeScriptParserMixin.parseBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13385:10)
+      at TypeScriptParserMixin.parseProgram (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12698:10)
+      at TypeScriptParserMixin.parseTopLevel (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12688:25)
+      at TypeScriptParserMixin.parse (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:14568:25)
+      at TypeScriptParserMixin.parse (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10183:18)
+      at parse (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:14602:38)
+      at parser (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/var/home/chris/Projects/guitar_guru_redux/node_modules/gensync/index.js:261:32)
+      at /var/home/chris/Projects/guitar_guru_redux/node_modules/gensync/index.js:273:13
+2:18:19 AM [vite] Internal server error: /var/home/chris/Projects/guitar_guru_redux/components/ScaleExplorer.tsx: 'import' and 'export' may only appear at the top level. (174:0)
+
+  172 | // Export a central mapping of section display titles so other components (nav) can
+  173 | // reference the canonical labels instead of depending on DOM scraping.
+> 174 | export const NAV_SECTION_TITLES: Record<string, string> = {
+      | ^
+  175 |     creativeExercises: 'Creative Exercises',
+  176 |     resources: 'Resources',
+  177 |     fretboard: 'Fretboard Studio',
+  Plugin: vite:react-babel
+  File: /var/home/chris/Projects/guitar_guru_redux/components/ScaleExplorer.tsx:174:0
+  179|  
+  180|  
+  181|      const { sections, isActive } = loadingState;
+     |  ^
+  182|  
+  183|      const renderSection = (key: SectionKey) => {
+      at constructor (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:367:19)
+      at TypeScriptParserMixin.raise (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:6624:19)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12947:18)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9569:18)
+      at TypeScriptParserMixin.parseStatementLike (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12843:17)
+      at TypeScriptParserMixin.parseStatementListItem (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12823:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13392:61)
+      at TypeScriptParserMixin.parseBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13385:10)
+      at TypeScriptParserMixin.parseBlock (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13373:10)
+      at TypeScriptParserMixin.parseFunctionBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12174:24)
+      at TypeScriptParserMixin.parseArrowExpression (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12149:10)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11759:12)
+      at TypeScriptParserMixin.parseExprAtom (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11395:23)
+      at TypeScriptParserMixin.parseExprAtom (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:4793:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9839:20)
+      at /var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10864:39
+      at TypeScriptParserMixin.allowInAnd (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12495:16)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10864:17)
+      at TypeScriptParserMixin.parseVar (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13460:91)
+      at TypeScriptParserMixin.parseVarStatement (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13306:10)
+      at TypeScriptParserMixin.parseVarStatement (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9469:31)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12927:23)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9569:18)
+      at TypeScriptParserMixin.parseStatementLike (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12843:17)
+      at TypeScriptParserMixin.parseModuleItem (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12820:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13392:36)
+      at TypeScriptParserMixin.parseBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13385:10)
+      at TypeScriptParserMixin.parseProgram (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12698:10)
+      at TypeScriptParserMixin.parseTopLevel (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12688:25)
+      at TypeScriptParserMixin.parse (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:14568:25)
+      at TypeScriptParserMixin.parse (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10183:18)
+      at parse (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:14602:38)
+      at parser (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/var/home/chris/Projects/guitar_guru_redux/node_modules/gensync/index.js:261:32)
+      at /var/home/chris/Projects/guitar_guru_redux/node_modules/gensync/index.js:273:13
+2:18:20 AM [vite] Internal server error: /var/home/chris/Projects/guitar_guru_redux/components/ScaleExplorer.tsx: 'import' and 'export' may only appear at the top level. (174:0)
+
+  172 | // Export a central mapping of section display titles so other components (nav) can
+  173 | // reference the canonical labels instead of depending on DOM scraping.
+> 174 | export const NAV_SECTION_TITLES: Record<string, string> = {
+      | ^
+  175 |     creativeExercises: 'Creative Exercises',
+  176 |     resources: 'Resources',
+  177 |     fretboard: 'Fretboard Studio',
+  Plugin: vite:react-babel
+  File: /var/home/chris/Projects/guitar_guru_redux/components/ScaleExplorer.tsx:174:0
+  179|  
+  180|  
+  181|      const { sections, isActive } = loadingState;
+     |  ^
+  182|  
+  183|      const renderSection = (key: SectionKey) => {
+      at constructor (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:367:19)
+      at TypeScriptParserMixin.raise (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:6624:19)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12947:18)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9569:18)
+      at TypeScriptParserMixin.parseStatementLike (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12843:17)
+      at TypeScriptParserMixin.parseStatementListItem (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12823:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13392:61)
+      at TypeScriptParserMixin.parseBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13385:10)
+      at TypeScriptParserMixin.parseBlock (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13373:10)
+      at TypeScriptParserMixin.parseFunctionBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12174:24)
+      at TypeScriptParserMixin.parseArrowExpression (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12149:10)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11759:12)
+      at TypeScriptParserMixin.parseExprAtom (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11395:23)
+      at TypeScriptParserMixin.parseExprAtom (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:4793:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9839:20)
+      at /var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10864:39
+      at TypeScriptParserMixin.allowInAnd (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12495:16)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10864:17)
+      at TypeScriptParserMixin.parseVar (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13460:91)
+      at TypeScriptParserMixin.parseVarStatement (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13306:10)
+      at TypeScriptParserMixin.parseVarStatement (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9469:31)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12927:23)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9569:18)
+      at TypeScriptParserMixin.parseStatementLike (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12843:17)
+      at TypeScriptParserMixin.parseModuleItem (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12820:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13392:36)
+      at TypeScriptParserMixin.parseBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13385:10)
+      at TypeScriptParserMixin.parseProgram (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12698:10)
+      at TypeScriptParserMixin.parseTopLevel (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12688:25)
+      at TypeScriptParserMixin.parse (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:14568:25)
+      at TypeScriptParserMixin.parse (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10183:18)
+      at parse (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:14602:38)
+      at parser (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/var/home/chris/Projects/guitar_guru_redux/node_modules/gensync/index.js:261:32)
+      at /var/home/chris/Projects/guitar_guru_redux/node_modules/gensync/index.js:273:13
+2:18:22 AM [vite] Internal server error: /var/home/chris/Projects/guitar_guru_redux/components/ScaleExplorer.tsx: 'import' and 'export' may only appear at the top level. (174:0)
+
+  172 | // Export a central mapping of section display titles so other components (nav) can
+  173 | // reference the canonical labels instead of depending on DOM scraping.
+> 174 | export const NAV_SECTION_TITLES: Record<string, string> = {
+      | ^
+  175 |     creativeExercises: 'Creative Exercises',
+  176 |     resources: 'Resources',
+  177 |     fretboard: 'Fretboard Studio',
+  Plugin: vite:react-babel
+  File: /var/home/chris/Projects/guitar_guru_redux/components/ScaleExplorer.tsx:174:0
+  179|  
+  180|  
+  181|      const { sections, isActive } = loadingState;
+     |  ^
+  182|  
+  183|      const renderSection = (key: SectionKey) => {
+      at constructor (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:367:19)
+      at TypeScriptParserMixin.raise (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:6624:19)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12947:18)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9569:18)
+      at TypeScriptParserMixin.parseStatementLike (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12843:17)
+      at TypeScriptParserMixin.parseStatementListItem (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12823:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13392:61)
+      at TypeScriptParserMixin.parseBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13385:10)
+      at TypeScriptParserMixin.parseBlock (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13373:10)
+      at TypeScriptParserMixin.parseFunctionBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12174:24)
+      at TypeScriptParserMixin.parseArrowExpression (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12149:10)
+      at TypeScriptParserMixin.parseParenAndDistinguishExpression (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11759:12)
+      at TypeScriptParserMixin.parseExprAtom (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11395:23)
+      at TypeScriptParserMixin.parseExprAtom (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:4793:20)
+      at TypeScriptParserMixin.parseExprSubscripts (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11145:23)
+      at TypeScriptParserMixin.parseUpdate (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11130:21)
+      at TypeScriptParserMixin.parseMaybeUnary (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:11110:23)
+      at TypeScriptParserMixin.parseMaybeUnary (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9890:18)
+      at TypeScriptParserMixin.parseMaybeUnaryOrPrivate (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10963:61)
+      at TypeScriptParserMixin.parseExprOps (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10968:23)
+      at TypeScriptParserMixin.parseMaybeConditional (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10945:23)
+      at TypeScriptParserMixin.parseMaybeAssign (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10895:21)
+      at TypeScriptParserMixin.parseMaybeAssign (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9839:20)
+      at /var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10864:39
+      at TypeScriptParserMixin.allowInAnd (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12495:16)
+      at TypeScriptParserMixin.parseMaybeAssignAllowIn (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10864:17)
+      at TypeScriptParserMixin.parseVar (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13460:91)
+      at TypeScriptParserMixin.parseVarStatement (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13306:10)
+      at TypeScriptParserMixin.parseVarStatement (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9469:31)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12927:23)
+      at TypeScriptParserMixin.parseStatementContent (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:9569:18)
+      at TypeScriptParserMixin.parseStatementLike (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12843:17)
+      at TypeScriptParserMixin.parseModuleItem (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12820:17)
+      at TypeScriptParserMixin.parseBlockOrModuleBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13392:36)
+      at TypeScriptParserMixin.parseBlockBody (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:13385:10)
+      at TypeScriptParserMixin.parseProgram (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12698:10)
+      at TypeScriptParserMixin.parseTopLevel (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:12688:25)
+      at TypeScriptParserMixin.parse (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:14568:25)
+      at TypeScriptParserMixin.parse (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:10183:18)
+      at parse (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/parser/lib/index.js:14602:38)
+      at parser (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/parser/index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/transformation/normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/transformation/index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (/var/home/chris/Projects/guitar_guru_redux/node_modules/@babel/core/lib/transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (/var/home/chris/Projects/guitar_guru_redux/node_modules/gensync/index.js:261:32)
+      at /var/home/chris/Projects/guitar_guru_redux/node_modules/gensync/index.js:273:13
+2:20:03 AM [vite] (client) hmr update /components/ScaleExplorer.tsx

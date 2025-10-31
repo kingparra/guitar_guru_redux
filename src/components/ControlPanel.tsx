@@ -16,6 +16,8 @@ interface ControlPanelProps {
     isAnalyzerVisible: boolean;
     onToggleAnalyzer: () => void;
     sectionIds: Record<string, string>;
+    // Optional mapping of section keys -> display titles for nav/search
+    navSections?: Record<string, string>;
 }
 
 const scaleNames = Object.keys(SCALE_FORMULAS);
@@ -48,15 +50,57 @@ const SetupMode: React.FC<Pick<ControlPanelProps, 'onGenerate' | 'isLoading' | '
 };
 
 
-const NavigationMode: React.FC<{ sectionIds: Record<string, string>, onSwitchToSetup: () => void }> = ({ sectionIds, onSwitchToSetup }) => {
+const NavigationMode: React.FC<{ sectionIds: Record<string, string>, navSections?: Record<string, string>, hasContent?: boolean, onSwitchToSetup: () => void }> = ({ sectionIds, navSections, hasContent, onSwitchToSetup }) => {
     const scrollToSection = (id: string) => {
         document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
-    const navItems = [
-        { id: sectionIds.creativeExercises, label: 'Exercises' },
-        { id: sectionIds.resources, label: 'Resources' },
-    ];
+    // Nav items are discovered after mount because sections may render later.
+    const [navItems, setNavItems] = React.useState<{ id: string; label: string }[]>([]);
+
+    React.useEffect(() => {
+        const buildItems = () => {
+            const items = Object.keys(sectionIds).map(key => {
+                const id = sectionIds[key];
+                let label = navSections?.[key];
+                if (!label && id) {
+                    const el = document.getElementById(id);
+                    if (el) label = el.getAttribute('data-section-title') || el.getAttribute('aria-label') || key;
+                }
+                return { id, label: label || key };
+            });
+            setNavItems(items);
+        };
+
+        buildItems();
+
+        // Observe DOM mutations so if a section mounts later we pick it up
+        const observer = new MutationObserver(() => {
+            buildItems();
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+
+        return () => observer.disconnect();
+    }, [sectionIds, navSections, hasContent]);
+
+    // Simple fuzzy filter: score by substring match and index
+    const fuzzyMatch = (term: string, items: { id: string; label: string }[]) => {
+        const t = term.trim().toLowerCase();
+        if (!t) return items;
+        return items
+            .map(item => {
+                const label = (item.label || '').toLowerCase();
+                const idx = label.indexOf(t);
+                const score = idx === -1 ? Infinity : idx;
+                return { item, score };
+            })
+            .filter(x => x.score !== Infinity)
+            .sort((a, b) => a.score - b.score)
+            .map(x => x.item);
+    };
+
+    const [query, setQuery] = React.useState('');
+    const filtered = fuzzyMatch(query, navItems);
 
     return (
         <>
@@ -67,8 +111,16 @@ const NavigationMode: React.FC<{ sectionIds: Record<string, string>, onSwitchToS
             <div className="h-6 w-px bg-purple-400/20 mx-2 hidden md:block"></div>
             <div className='hidden md:flex items-center gap-2'>
                 <NavIcon />
-                {navItems.map(item => (
-                    <button key={item.id} onClick={() => scrollToSection(item.id)} className="text-gray-300 hover:text-cyan-400 font-semibold transition-colors px-3 py-1 text-sm">
+                {/* Compact inline Jump input */}
+                <input
+                    aria-label="Jump to section"
+                    placeholder="Jump to..."
+                    className="px-2 py-1 rounded-md bg-transparent text-sm text-gray-100 border border-purple-400/20 w-40"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                />
+                {filtered.map(item => (
+                    <button key={item.id} onClick={() => { scrollToSection(item.id); setQuery(''); }} className="text-gray-300 hover:text-cyan-400 font-semibold transition-colors px-3 py-1 text-sm">
                         {item.label}
                     </button>
                 ))}

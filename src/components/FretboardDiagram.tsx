@@ -1,6 +1,8 @@
 import React from 'react';
 import type { DiagramNote, Barre, FretboardViewModel } from '../types';
 import { FRET_MARKERS, COLORS, TUNING } from '../constants';
+import { playNote } from '../utils/audioUtils';
+import { getNoteFromFret } from '../utils/musicUtils';
 import { useFretboardLayout } from '../hooks/useFretboardLayout';
 import FretboardNote from './FretboardNote';
 
@@ -19,13 +21,35 @@ const SvgStringLabels: React.FC<{
             const isMuted = mutedStrings?.includes(i);
             const labelColor = (isOpen || isMuted) ? COLORS.textPrimary : COLORS.textSecondary;
 
+            const handlePlayOpen = () => {
+                try {
+                    const note = getNoteFromFret(i, 0);
+                    // debug: log the note being played
+                    // eslint-disable-next-line no-console
+                    console.debug('Fretboard: play open string', i, note);
+                    playNote(note.noteName, note.octave, 1);
+                } catch (e) {
+                    // swallow errors to avoid UI crash
+                    // eslint-disable-next-line no-console
+                    console.error('Failed to play open string', e);
+                }
+            };
+
             return (
-                <g key={`string-label-group-${i}`} className="cursor-pointer">
-                    <text x={x} y={y} dy="0.35em" fontSize={20 * fontScale} fill={labelColor} textAnchor="middle" fontWeight="bold" style={{ pointerEvents: 'none' }}>
+                <g
+                    key={`string-label-group-${i}`}
+                    className="cursor-pointer"
+                    role="button"
+                    tabIndex={0}
+                    onMouseDown={handlePlayOpen}
+                    onClick={handlePlayOpen}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handlePlayOpen(); } }}
+                >
+                    <text x={x} y={y} dy="0.35em" fontSize={20 * fontScale} fill={labelColor} textAnchor="middle" fontWeight="bold" style={{ pointerEvents: 'auto' }}>
                         {TUNING[i]}
                     </text>
-                    {isOpen && <text x={x - 25} y={y} dy="0.35em" fontSize={22 * fontScale} fill={COLORS.textPrimary} textAnchor="middle" fontWeight="bold" style={{ pointerEvents: 'none' }}>○</text>}
-                    {isMuted && <text x={x - 25} y={y} dy="0.35em" fontSize={24 * fontScale} fill={COLORS.textSecondary} textAnchor="middle" fontWeight="bold" style={{ pointerEvents: 'none' }}>×</text>}
+                    {isOpen && <text x={x - 25} y={y} dy="0.35em" fontSize={22 * fontScale} fill={COLORS.textPrimary} textAnchor="middle" fontWeight="bold" style={{ pointerEvents: 'auto' }}>○</text>}
+                    {isMuted && <text x={x - 25} y={y} dy="0.35em" fontSize={24 * fontScale} fill={COLORS.textSecondary} textAnchor="middle" fontWeight="bold" style={{ pointerEvents: 'auto' }}>×</text>}
                 </g>
             );
         })}
