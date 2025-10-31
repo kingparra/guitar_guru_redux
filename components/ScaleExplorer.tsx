@@ -31,21 +31,25 @@ import NotationPanel from './common/NotationPanel';
 import PianoKeyboard from './common/PianoKeyboard';
 import CreativeExercisesSection from './scaleExplorerSections/CreativeExercisesSection';
 
-const WelcomeState = () => (
-    <Card>
-        <div className="p-8 md:p-12">
-            <h2 className="text-3xl font-bold text-gray-100 mb-4 text-center">
-                Welcome to Guitar Scale Guru!
-            </h2>
-            <p
-                className="text-lg max-w-3xl mx-auto mb-6 text-center"
-                style={{ color: COLORS.textSecondary }}
-            >
-                Select a root note and a scale, then click "Generate Materials"
-                to begin.
-            </p>
-        </div>
-    </Card>
+const WelcomeState: React.FC<{ sectionIds?: Record<string,string> }> = ({ sectionIds }) => (
+    <>
+        {/* Hidden section anchor so nav can discover the Fretboard Studio title even before content loads */}
+        <section id={sectionIds?.fretboard} data-section-title="Fretboard Studio" style={{ display: 'none' }} />
+        <Card>
+            <div className="p-8 md:p-12">
+                <h2 className="text-3xl font-bold text-gray-100 mb-4 text-center">
+                    Welcome to Guitar Scale Guru!
+                </h2>
+                <p
+                    className="text-lg max-w-3xl mx-auto mb-6 text-center"
+                    style={{ color: COLORS.textSecondary }}
+                >
+                    Select a root note and a scale, then click "Generate Materials"
+                    to begin.
+                </p>
+            </div>
+        </Card>
+    </>
 );
 
 
@@ -92,7 +96,7 @@ const ScaleExplorer: React.FC<ScaleExplorerProps> = (props) => {
         if (loadingState.status === 'error' && firstError) {
              return <Card><p className="text-red-400 text-center p-4">{firstError.error}</p></Card>;
         }
-        return <WelcomeState />;
+        return <WelcomeState sectionIds={props.sectionIds} />;
     }
     
     const sectionConfig: Record<SectionKey, SectionConfig> = {
