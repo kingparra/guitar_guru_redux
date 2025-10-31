@@ -47,26 +47,26 @@ const SetupMode: React.FC<Omit<ControlPanelProps, 'hasContent' | 'sectionIds' | 
     </>
 );
 
-const NavigationMode: React.FC<{ sectionIds: Record<string, string>, navSections?: Record<string, string>, onSwitchToSetup: () => void }> = ({ sectionIds, navSections, onSwitchToSetup }) => {
+const NavigationMode: React.FC<{ sectionIds: Record<string, string>, navSections?: Record<string, string>, hasContent?: boolean, onSwitchToSetup: () => void }> = ({ sectionIds, navSections, hasContent, onSwitchToSetup }) => {
     const scrollToSection = (id: string) => {
         document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
-    // Build nav items automatically from provided sectionIds + navSections titles.
-    // If navSections isn't provided, attempt to read the section title from the DOM
-    const navItems = Object.keys(sectionIds).map(key => {
-        const id = sectionIds[key];
-        let label = navSections?.[key];
-        if (!label && id) {
-            try {
+    // Nav items are discovered after mount because sections may render later.
+    const [navItems, setNavItems] = React.useState<{ id: string; label: string }[]>([]);
+
+    React.useEffect(() => {
+        const items = Object.keys(sectionIds).map(key => {
+            const id = sectionIds[key];
+            let label = navSections?.[key];
+            if (!label && id) {
                 const el = document.getElementById(id);
                 if (el) label = el.getAttribute('data-section-title') || el.getAttribute('aria-label') || key;
-            } catch (e) {
-                label = key;
             }
-        }
-        return { id, label: label || key };
-    });
+            return { id, label: label || key };
+        });
+        setNavItems(items);
+    }, [sectionIds, navSections, hasContent]);
 
     // Simple fuzzy filter: score by substring match and index
     const fuzzyMatch = (term: string, items: { id: string; label: string }[]) => {
@@ -125,7 +125,7 @@ const ControlPanel: React.FC<ControlPanelProps> = (props) => {
     return (
         <div className="sticky top-4 z-10 bg-[#171528]/80 backdrop-blur-md p-2 rounded-xl shadow-2xl border border-purple-400/30">
             <div className="flex items-center gap-2 flex-wrap">
-                {isSetupMode ? <SetupMode {...props} /> : <NavigationMode sectionIds={props.sectionIds} navSections={props.navSections} onSwitchToSetup={() => setIsSetupMode(true)} />}
+                {isSetupMode ? <SetupMode {...props} /> : <NavigationMode sectionIds={props.sectionIds} navSections={props.navSections} hasContent={props.hasContent} onSwitchToSetup={() => setIsSetupMode(true)} />}
 
                 <div className="flex-grow"></div>
 
