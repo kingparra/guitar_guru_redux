@@ -10,7 +10,8 @@ interface SectionProps {
 
 const Section: React.FC<SectionProps> = ({ title, icon, children, id }) => {
     return (
-        <section id={id} className="mb-8">
+        // Expose the section title on the DOM so nav can pick up titles dynamically
+        <section id={id} data-section-title={title} className="mb-8">
             <SectionHeader title={title} icon={icon} />
             {children}
         </section>

@@ -52,8 +52,21 @@ const NavigationMode: React.FC<{ sectionIds: Record<string, string>, navSections
         document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
 
-    // Build nav items automatically from provided sectionIds + navSections titles
-    const navItems = Object.keys(sectionIds).map(key => ({ id: sectionIds[key], label: navSections?.[key] ?? key }));
+    // Build nav items automatically from provided sectionIds + navSections titles.
+    // If navSections isn't provided, attempt to read the section title from the DOM
+    const navItems = Object.keys(sectionIds).map(key => {
+        const id = sectionIds[key];
+        let label = navSections?.[key];
+        if (!label && id) {
+            try {
+                const el = document.getElementById(id);
+                if (el) label = el.getAttribute('data-section-title') || el.getAttribute('aria-label') || key;
+            } catch (e) {
+                label = key;
+            }
+        }
+        return { id, label: label || key };
+    });
 
     // Simple fuzzy filter: score by substring match and index
     const fuzzyMatch = (term: string, items: { id: string; label: string }[]) => {
@@ -80,6 +93,7 @@ const NavigationMode: React.FC<{ sectionIds: Record<string, string>, navSections
                 <SettingsIcon />
                 New Scale
             </button>
+            {/* Removed explicit Fretboard Studio button; titles are discovered dynamically from sections */}
             <div className="h-6 w-px bg-purple-400/20 mx-2"></div>
             <div className="flex items-center gap-2">
                 <input
