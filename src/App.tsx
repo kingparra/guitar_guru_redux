@@ -87,7 +87,7 @@ const AppContent: React.FC = () => {
                         onToggleAnalyzer={() => setIsAnalyzerVisible(!isAnalyzerVisible)}
                         sectionIds={sectionIds}
                         // Provide display titles to the nav component so it can build labels
-                        navSections={{ creativeExercises: 'Creative Exercises', resources: 'Resources' }}
+                        navSections={{ creativeExercises: 'Creative Exercises', resources: 'Resources', fretboard: 'Fretboard Studio' }}
                     />
                     {(pdfError || analysisError) && (
                         <div className="mt-4 p-3 bg-red-900/50 border border-red-500/50 rounded-lg text-red-300 text-center">
