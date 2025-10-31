@@ -56,16 +56,28 @@ const NavigationMode: React.FC<{ sectionIds: Record<string, string>, navSections
     const [navItems, setNavItems] = React.useState<{ id: string; label: string }[]>([]);
 
     React.useEffect(() => {
-        const items = Object.keys(sectionIds).map(key => {
-            const id = sectionIds[key];
-            let label = navSections?.[key];
-            if (!label && id) {
-                const el = document.getElementById(id);
-                if (el) label = el.getAttribute('data-section-title') || el.getAttribute('aria-label') || key;
-            }
-            return { id, label: label || key };
+        const buildItems = () => {
+            const items = Object.keys(sectionIds).map(key => {
+                const id = sectionIds[key];
+                let label = navSections?.[key];
+                if (!label && id) {
+                    const el = document.getElementById(id);
+                    if (el) label = el.getAttribute('data-section-title') || el.getAttribute('aria-label') || key;
+                }
+                return { id, label: label || key };
+            });
+            setNavItems(items);
+        };
+
+        buildItems();
+
+        // Observe DOM mutations so if a section mounts later we pick it up
+        const observer = new MutationObserver(() => {
+            buildItems();
         });
-        setNavItems(items);
+        observer.observe(document.body, { childList: true, subtree: true });
+
+        return () => observer.disconnect();
     }, [sectionIds, navSections, hasContent]);
 
     // Simple fuzzy filter: score by substring match and index

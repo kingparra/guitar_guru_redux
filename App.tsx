@@ -30,6 +30,8 @@ import { getOctaveForNote } from './utils/musicUtils';
 const sectionIds: Record<string, string> = {
     resources: 'section-resources',
     creativeExercises: 'section-creative-exercises',
+    // Ensure the fretboard section is discoverable by the dynamic nav
+    fretboard: 'section-fretboard',
 };
 
 const App: React.FC = () => {
