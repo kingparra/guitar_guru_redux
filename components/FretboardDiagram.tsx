@@ -6,6 +6,7 @@ import { FRET_MARKERS, COLORS, TUNING, OCTAVE_COLORS } from '../constants';
 import { useFretboardLayout } from '../hooks/useFretboardLayout';
 import FretboardNote from './FretboardNote';
 import { getOctaveForNote, getNoteFromFret } from '../utils/musicUtils';
+import { playNote } from '../utils/audioUtils';
 
 const SvgStringAndSymbolLabels: React.FC<{
     numStrings: number;
@@ -19,6 +20,17 @@ const SvgStringAndSymbolLabels: React.FC<{
 }> = React.memo(({ numStrings, openStrings, mutedStrings, allNotes, getY, fontScale, x, onNoteClick }) => {
 
     const handleClick = (stringIndex: number) => {
+        // Play the open string audio immediately on click (user gesture)
+        try {
+            const { noteName, octave } = getNoteFromFret(stringIndex, 0);
+            // eslint-disable-next-line no-console
+            console.debug('Fretboard label clicked: play', stringIndex, noteName, octave);
+            playNote(noteName, octave, 1);
+        } catch (e) {
+            // eslint-disable-next-line no-console
+            console.error('Failed to play open string', e);
+        }
+
         if (!onNoteClick) return;
         const openNote = allNotes.find(n => n.string === stringIndex && n.fret === 0);
         if (openNote) {
@@ -35,12 +47,19 @@ const SvgStringAndSymbolLabels: React.FC<{
                 const labelColor = (isOpen || isMuted) ? COLORS.textPrimary : COLORS.textSecondary;
 
                 return (
-                    <g key={`string-label-group-${i}`} onClick={() => handleClick(i)} className="cursor-pointer">
-                        <text x={x} y={y} dy="0.35em" fontSize={20 * fontScale} fill={labelColor} textAnchor="middle" fontWeight="bold" style={{ pointerEvents: 'none' }}>
+                    <g
+                        key={`string-label-group-${i}`}
+                        onClick={() => handleClick(i)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleClick(i); } }}
+                        role="button"
+                        tabIndex={0}
+                        className="cursor-pointer"
+                    >
+                        <text x={x} y={y} dy="0.35em" fontSize={20 * fontScale} fill={labelColor} textAnchor="middle" fontWeight="bold" style={{ pointerEvents: 'auto' }}>
                             {TUNING[i]}
                         </text>
-                        {isOpen && <text x={x - 25} y={y} dy="0.35em" fontSize={22 * fontScale} fill={COLORS.textPrimary} textAnchor="middle" fontWeight="bold" style={{ pointerEvents: 'none' }}>○</text>}
-                        {isMuted && <text x={x - 25} y={y} dy="0.35em" fontSize={24 * fontScale} fill={COLORS.textSecondary} textAnchor="middle" fontWeight="bold" style={{ pointerEvents: 'none' }}>×</text>}
+                        {isOpen && <text x={x - 25} y={y} dy="0.35em" fontSize={22 * fontScale} fill={COLORS.textPrimary} textAnchor="middle" fontWeight="bold" style={{ pointerEvents: 'auto' }}>○</text>}
+                        {isMuted && <text x={x - 25} y={y} dy="0.35em" fontSize={24 * fontScale} fill={COLORS.textSecondary} textAnchor="middle" fontWeight="bold" style={{ pointerEvents: 'auto' }}>×</text>}
                     </g>
                 );
             })}
