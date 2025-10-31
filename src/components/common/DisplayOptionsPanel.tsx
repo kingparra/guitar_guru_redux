@@ -3,6 +3,7 @@
 import React from 'react';
 import type { StudioMode } from '../../types';
 import type { useStudioModes } from '../../hooks/useStudioModes';
+import { runtimeConfig } from '../../config';
 
 interface DisplayOptionsPanelProps extends ReturnType<typeof useStudioModes> {
     hasRun: boolean;
@@ -36,6 +37,7 @@ const DisplayOptionsPanel: React.FC<DisplayOptionsPanelProps> = ({
     selectedChordName, onChordChange, diatonicChords,
     selectedPositionIndex, onPositionChange,
     hasRun, numPositions,
+    enableShellVoicings, setEnableShellVoicings,
 }) => {
     
     const handlePrevPosition = () => {
@@ -113,6 +115,12 @@ const DisplayOptionsPanel: React.FC<DisplayOptionsPanelProps> = ({
                     </div>
                 </div>
             )}
+            <div className="border-t border-purple-400/20 pt-4">
+                <label className="flex items-center gap-2 text-sm">
+                    <input type="checkbox" checked={enableShellVoicings} onChange={e => { setEnableShellVoicings(e.target.checked); runtimeConfig.enableShellVoicings = e.target.checked; }} />
+                    <span className="text-gray-300">Enable shell voicings (muted/non-contiguous)</span>
+                </label>
+            </div>
         </div>
     );
 };

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 import type { DiagramNote, PathDiagramNote, StudioMode, FretboardNoteViewModel, FingeringMap, Chord, AnchorNoteContext, ChordInspectorData, ClickedNote } from '../types';
 import { useFretboardLayout } from './useFretboardLayout';
 import { getOctaveForNote } from '../utils/musicUtils';
@@ -101,9 +101,52 @@ export const useFretboardViewModel = (params: ViewModelParams) => {
         return map;
     }, [studioMode, fingering, selectedPositionIndex, selectedChord, selectedVoicingIndex, selectedAnchorContext]);
 
+    // Map of `${string}_${fret}` => degree from the currently selected anchor context.
+    // This preserves degrees assigned when anchor contexts were generated without mutating
+    // the original notesOnFretboard entries.
+    const anchorDegreeMap = useMemo(() => {
+        if (studioMode === 'anchor' && selectedAnchorContext) {
+            return new Map(selectedAnchorContext.arpeggioNotes.map(n => [`${n.string}_${n.fret}`, n.degree]));
+        }
+        return new Map<string, string | undefined>();
+    }, [studioMode, selectedAnchorContext]);
+
+    // Track whether the current anchor note selection was made while in Anchor mode.
+    // We only want to show interval pills when the user selected a fretting while
+    // in Anchor mode and then picked a function (selectedAnchorContext).
+    const prevAnchorNoteRef = useRef<DiagramNote | null>(null);
+    const anchorSelectionMadeInAnchorModeRef = useRef(false);
+
+    useEffect(() => {
+        // If anchorNote changed, determine whether it was selected while in anchor mode
+        if (!anchorNote) return;
+        const prev = prevAnchorNoteRef.current;
+        const changed = !prev || prev.string !== anchorNote.string || prev.fret !== anchorNote.fret;
+        if (changed) {
+            anchorSelectionMadeInAnchorModeRef.current = (studioMode === 'anchor');
+            prevAnchorNoteRef.current = anchorNote;
+        }
+    }, [anchorNote, studioMode]);
+
+    // Reset the flag when leaving anchor mode so stale selections don't show pills
+    useEffect(() => {
+        if (studioMode !== 'anchor') anchorSelectionMadeInAnchorModeRef.current = false;
+    }, [studioMode]);
+
 
     const notes = useMemo((): FretboardNoteViewModel[] => {
-        return allRenderableNotes
+        // When in anchor mode, print debugging info to the console so we can see
+        // whether the anchorDegreeMap is populated and whether view-model entries
+        // receive intervalLabel values. This runs unconditionally to help debugging
+        // in local dev environments.
+        if (studioMode === 'anchor') {
+            try {
+                // eslint-disable-next-line no-console
+                console.debug('anchorDegreeMap sample:', Array.from(anchorDegreeMap.entries()).slice(0, 20));
+            } catch (e) {}
+        }
+
+        const result = allRenderableNotes
             .filter(note => typeof note.fret === 'number' && note.fret > 0)
             .map(note => {
                 const noteKey = `${note.string}_${note.fret}`;
@@ -111,7 +154,11 @@ export const useFretboardViewModel = (params: ViewModelParams) => {
 
                 // Determine display text with custom text override
                 let displayText: string;
-                if (note.displayText) {
+                // If this note is part of an anchor arpeggio, force the main label to be the note name
+                // so the interval/degree is reserved for the pill. Otherwise respect displayText override.
+                if (studioMode === 'anchor' && displayNotes?.has(noteKey)) {
+                    displayText = note.noteName ?? '';
+                } else if (note.displayText) {
                     displayText = note.displayText;
                 } else {
                     const sequenceNumber = runSequenceLookup.get(noteKey);
@@ -122,7 +169,10 @@ export const useFretboardViewModel = (params: ViewModelParams) => {
                         if ((studioMode === 'positions' || studioMode === 'inspector') && finger) {
                             displayText = finger;
                         } else if (studioMode === 'anchor' && note.degree) {
-                            displayText = note.degree;
+                            // For anchor mode: when this note is part of the active arpeggio (isInLayer true),
+                            // we still show the note name in the main text, and expose the degree as an intervalLabel
+                            // so the UI can render it in a pill for highlighted anchor notes.
+                            displayText = note.noteName ?? '';
                         } else {
                             displayText = note.noteName ?? '';
                         }
@@ -137,7 +187,12 @@ export const useFretboardViewModel = (params: ViewModelParams) => {
                 let highlightState: FretboardNoteViewModel['highlightState'] = 'none';
                 if (isPlaybackNote) {
                     highlightState = 'playback';
+                } else if (studioMode === 'anchor' && displayNotes?.has(noteKey)) {
+                    // When in anchor mode, any note that is part of the selected anchor arpeggio
+                    // should be highlighted as 'anchor' so the UI can render the interval pill.
+                    highlightState = 'anchor';
                 } else if (anchorNote && anchorNote.string === note.string && anchorNote.fret === note.fret) {
+                    // Fallback: single anchor note selection also uses anchor highlight
                     highlightState = 'anchor';
                 } else if (highlightedPitch && highlightedPitch.noteName === note.noteName && highlightedPitch.octave === octave) {
                     highlightState = 'pitch';
@@ -150,6 +205,15 @@ export const useFretboardViewModel = (params: ViewModelParams) => {
                 }
                 
                 const isRoot = note.degree === 'R';
+                // Prefer degree from the selected anchor context (if present), otherwise fall back to note.degree
+                const contextDegree = anchorDegreeMap.get(noteKey);
+                // Only expose the interval/degree pill when we're in anchor mode, the user
+                // has selected a specific anchor context (a function like "b3 of Am (iv)"),
+                // and the anchor fretting was selected while already in Anchor mode. This
+                // prevents showing pills when entering Anchor mode with a stale selection.
+                const intervalLabel = (studioMode === 'anchor' && selectedAnchorContext && anchorSelectionMadeInAnchorModeRef.current)
+                    ? (contextDegree ?? note.degree)
+                    : undefined;
 
                 return {
                     key: noteKey,
@@ -157,6 +221,7 @@ export const useFretboardViewModel = (params: ViewModelParams) => {
                     x: getX(note.fret as number),
                     y: getY(note.string),
                     displayText,
+                    intervalLabel,
                     fillColor: isRoot ? COLORS.root : COLORS.tone,
                     textColor: COLORS.bgPrimary,
                     radius: isRoot ? BASE_NOTE_RADIUS : BASE_NOTE_RADIUS - 1,
@@ -167,6 +232,15 @@ export const useFretboardViewModel = (params: ViewModelParams) => {
                     onClick: () => onNoteClick(note),
                 };
             });
+
+        if (studioMode === 'anchor') {
+            try {
+                // eslint-disable-next-line no-console
+                console.debug('viewModel sample (anchor):', result.slice(0, 20).map(r => ({ key: r.key, displayText: r.displayText, intervalLabel: (r as any).intervalLabel, highlightState: r.highlightState, opacity: r.opacity })) );
+            } catch (e) {}
+        }
+
+        return result;
     }, [allRenderableNotes, getX, getY, displayNotes, studioMode, runSequenceLookup, fingeringMap, playbackNote, anchorNote, highlightedPitch, highlightedNotes, tensionNotes, characteristicDegrees, onNoteClick]);
     
     const barres = (studioMode === 'inspector' && selectedVoicingIndex >= 0) ? selectedChord?.voicings[selectedVoicingIndex]?.barres || [] : [];

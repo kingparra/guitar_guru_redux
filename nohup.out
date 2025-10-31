@@ -1,0 +1,50 @@
+Port 3000 is in use, trying another one...
+Port 3001 is in use, trying another one...
+Port 3002 is in use, trying another one...
+
+  VITE v6.4.1  ready in 634 ms
+
+  ➜  Local:   http://localhost:3003/
+  ➜  Network: http://192.168.1.65:3003/
+Unknown command: "dev"
+
+
+Did you mean this?
+  npm run dev # run the "dev" package script
+To see a list of supported npm commands, run:
+  npm help
+Unknown command: "dev"
+
+
+Did you mean this?
+  npm run dev # run the "dev" package script
+To see a list of supported npm commands, run:
+  npm help
+
+> guitar-scale-guru@0.0.0 dev
+> vite
+
+
+  VITE v6.4.1  ready in 346 ms
+
+  ➜  Local:   http://localhost:3000/
+  ➜  Network: http://192.168.1.65:3000/
+9:39:09 PM [vite] (client) hmr update /App.tsx, /components/ControlPanel.tsx, /components/common/Footer.tsx, /components/PdfDocument.tsx, /components/common/PianoKeyboard.tsx, /components/common/NotationPanel.tsx, /components/FretboardDiagram.tsx, /components/common/AnchorContextPanel.tsx, /components/ScaleExplorer.tsx, /components/NotationAnalyzer.tsx, /components/scaleExplorerSections/DiagramsSection.tsx, /components/common/SectionPlaceholder.tsx, /components/common/ChatPanel.tsx, /components/common/StructuredTabDisplay.tsx, /components/common/DiagramLegend.tsx, /components/common/ChordInspectorPanel.tsx, /components/FretboardNote.tsx
+9:39:32 PM [vite] (client) hmr update /App.tsx, /components/scaleExplorerSections/DiagramsSection.tsx, /components/common/StructuredTabDisplay.tsx
+9:39:43 PM [vite] (client) hmr update /App.tsx, /components/scaleExplorerSections/DiagramsSection.tsx, /components/common/StructuredTabDisplay.tsx
+10:58:37 PM [vite] (client) hmr update /App.tsx, /components/scaleExplorerSections/DiagramsSection.tsx, /components/common/StructuredTabDisplay.tsx
+10:58:48 PM [vite] (client) hmr update /App.tsx, /components/scaleExplorerSections/DiagramsSection.tsx, /components/common/StructuredTabDisplay.tsx
+1:25:25 AM [vite] (client) hmr update /App.tsx, /components/scaleExplorerSections/DiagramsSection.tsx, /components/common/StructuredTabDisplay.tsx
+1:25:25 AM [vite] (client) hmr update /App.tsx, /components/ControlPanel.tsx, /components/common/Footer.tsx, /components/PdfDocument.tsx, /components/common/PianoKeyboard.tsx, /components/common/NotationPanel.tsx, /components/FretboardDiagram.tsx, /components/common/AnchorContextPanel.tsx, /components/ScaleExplorer.tsx, /components/NotationAnalyzer.tsx, /components/scaleExplorerSections/DiagramsSection.tsx, /components/common/SectionPlaceholder.tsx, /components/common/ChatPanel.tsx, /components/common/StructuredTabDisplay.tsx, /components/common/DiagramLegend.tsx, /components/common/ChordInspectorPanel.tsx, /components/FretboardNote.tsx
+1:25:25 AM [vite] (client) hmr update /App.tsx, /components/scaleExplorerSections/DiagramsSection.tsx, /components/common/StructuredTabDisplay.tsx
+
+> guitar-scale-guru@0.0.0 dev
+> vite
+
+
+  VITE v6.4.1  ready in 471 ms
+
+  ➜  Local:   http://localhost:3000/
+  ➜  Network: http://192.168.1.65:3000/
+1:38:15 AM [vite] (client) hmr update /App.tsx, /components/common/NotationPanel.tsx, /components/common/PianoKeyboard.tsx, /components/FretboardDiagram.tsx, /components/common/AnchorContextPanel.tsx, /components/NotationAnalyzer.tsx, /components/common/Footer.tsx, /components/ControlPanel.tsx, /components/PdfDocument.tsx, /components/ScaleExplorer.tsx, /components/common/SectionPlaceholder.tsx, /components/scaleExplorerSections/DiagramsSection.tsx, /components/common/ChatPanel.tsx, /components/common/StructuredTabDisplay.tsx, /components/common/DiagramLegend.tsx, /components/common/ChordInspectorPanel.tsx, /components/FretboardNote.tsx
+1:47:10 AM [vite] (client) hmr update /components/FretboardNote.tsx

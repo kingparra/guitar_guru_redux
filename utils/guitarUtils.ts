@@ -1,4 +1,5 @@
-import { TUNING, NUM_FRETS, ALL_NOTES, NOTE_MAP, SCALE_FORMULAS } from '../constants';
+import { TUNING, NUM_FRETS, ALL_NOTES, NOTE_MAP, SCALE_FORMULAS, normalizeNoteName } from '../constants';
+import { runtimeConfig } from '../src/config';
 import type { DiagramNote, FingeringMap, PathDiagramNote, StructuredTab, Chord, Voicing, Result, ChordProgression, AnchorNoteContext } from '../types';
 import { HandPositionModel } from '../models/HandPositionModel';
 
@@ -8,8 +9,9 @@ export const generateScaleNotesFromFormula = (rootNote: string, scaleName: strin
     const formula = SCALE_FORMULAS[scaleName];
     if (!formula) return { type: 'failure', error: new Error(`Scale formula for "${scaleName}" not found.`) };
     
-    const scaleNotes: ScaleNote[] = [{ noteName: rootNote, degree: 'R' }];
-    let currentNoteIndex = NOTE_MAP[rootNote];
+    const canonicalRoot = normalizeNoteName(rootNote);
+    const scaleNotes: ScaleNote[] = [{ noteName: canonicalRoot, degree: 'R' }];
+    let currentNoteIndex = NOTE_MAP[canonicalRoot];
     for (const [interval, degree] of formula) {
         currentNoteIndex = (currentNoteIndex + interval) % ALL_NOTES.length;
         scaleNotes.push({ noteName: ALL_NOTES[currentNoteIndex], degree });
@@ -28,14 +30,15 @@ export const getDiagramMetadataFromScaleNotes = (scaleNotes: ScaleNote[]): { cha
 export const generateNotesOnFretboard = (scaleNotes: ScaleNote[]): DiagramNote[] => {
     const notes: DiagramNote[] = [];
     if (!scaleNotes?.length) return notes;
-    const scaleNoteMap = new Map(scaleNotes.map(n => [n.noteName, n.degree]));
+    const scaleNoteMap = new Map(scaleNotes.map(n => [normalizeNoteName(n.noteName), n.degree]));
     for (let stringIndex = 0; stringIndex < TUNING.length; stringIndex++) {
-        const openStringNoteIndex = NOTE_MAP[TUNING[stringIndex].toUpperCase()];
+        const openStringNoteIndex = NOTE_MAP[normalizeNoteName(TUNING[stringIndex])];
         if (openStringNoteIndex === undefined) continue;
         for (let fret = 0; fret <= NUM_FRETS; fret++) {
             const currentNoteName = ALL_NOTES[(openStringNoteIndex + fret) % ALL_NOTES.length];
-            if (scaleNoteMap.has(currentNoteName)) {
-                notes.push({ string: stringIndex, fret, noteName: currentNoteName, degree: scaleNoteMap.get(currentNoteName)! });
+            const canonical = normalizeNoteName(currentNoteName);
+            if (scaleNoteMap.has(canonical)) {
+                notes.push({ string: stringIndex, fret, noteName: canonical, degree: scaleNoteMap.get(canonical)! });
             }
         }
     }
@@ -60,7 +63,15 @@ export const CHORD_VOICING_LIBRARY: VoicingTemplate[] = [
     { name: 'Open A Minor', quality: 'min', rootNoteName: 'A', isMovable: false, root: { string: 5, fret: 0 }, notes: [ { string: 3, fret: 2, finger: '2', degree: 'b3' }, { string: 2, fret: 2, finger: '3', degree: '5' }, { string: 1, fret: 1, finger: '1', degree: 'R' } ], openStrings: [5, 0], mutedStrings: [6] },
     { name: 'Open D Major', quality: 'maj', rootNoteName: 'D', isMovable: false, root: { string: 3, fret: 0 }, notes: [ { string: 2, fret: 2, finger: '1', degree: '3' }, { string: 1, fret: 3, finger: '3', degree: '5' }, { string: 0, fret: 2, finger: '2', degree: 'R' } ], openStrings: [3], mutedStrings: [6, 5] },
     { name: 'Open D Minor', quality: 'min', rootNoteName: 'D', isMovable: false, root: { string: 3, fret: 0 }, notes: [ { string: 2, fret: 2, finger: '2', degree: 'b3' }, { string: 1, fret: 3, finger: '3', degree: '5' }, { string: 0, fret: 1, finger: '1', degree: 'R' } ], openStrings: [3], mutedStrings: [6, 5] },
-    { name: 'Open G Major', quality: 'maj', rootNoteName: 'G', isMovable: false, root: { string: 2, fret: 0 }, notes: [ { string: 5, fret: 2, finger: '1', degree: '3' }, { string: 1, fret: 3, finger: '3', degree: '5' }, { string: 0, fret: 3, finger: '4', degree: 'R' } ], openStrings: [3, 2], mutedStrings: [6, 4] },
+    // Open G voicing (7-string): mute the low B (string 6) and play the standard 6-string open G shape on strings 5..0
+    { name: 'Open G Major', quality: 'maj', rootNoteName: 'G', isMovable: false, root: { string: 5, fret: 3 }, notes: [
+        { string: 5, fret: 3, finger: '2', degree: 'R' }, // E string -> G
+        { string: 4, fret: 2, finger: '1', degree: '3' }, // A string -> B
+        { string: 3, fret: 0, finger: '0', degree: '5' }, // D open -> D
+        { string: 2, fret: 0, finger: '0', degree: 'R' }, // G open -> G
+        { string: 1, fret: 0, finger: '0', degree: '3' }, // B open -> B
+        { string: 0, fret: 3, finger: '3', degree: 'R' }, // high e -> G
+    ], openStrings: [3, 2, 1, 0], mutedStrings: [6] },
     { name: 'Open C Major', quality: 'maj', rootNoteName: 'C', isMovable: false, root: { string: 4, fret: 3 }, notes: [ { string: 4, fret: 3, finger: '3', degree: 'R' }, { string: 3, fret: 2, finger: '2', degree: '3' }, { string: 1, fret: 1, finger: '1', degree: 'R' } ], openStrings: [2, 0], mutedStrings: [6, 5] },
     
     // 7-String Barre Chords
@@ -82,6 +93,39 @@ export const CHORD_VOICING_LIBRARY: VoicingTemplate[] = [
     { name: 'Movable Augmented 2', quality: 'aug', isMovable: true, root: { string: 4, fret: 3 }, notes: [ { string: 4, fret: 3, finger: '3', degree: 'R' }, { string: 3, fret: 2, finger: '2', degree: '#5' }, { string: 2, fret: 2, finger: '2', degree: '3' } ], mutedStrings: [6, 5, 1, 0] },
 ];
 
+// CAGED templates (relative shapes). Each template maps to a chord shape that can be moved along the neck.
+const CAGED_BASES: Record<string, { rootString: number; rootFret: number; notes: (Omit<DiagramNote,'noteName'>)[]; openStrings?: number[]; mutedStrings?: number[] }> = {
+    C: { rootString: 4, rootFret: 3, notes: [ { string: 4, fret: 3, degree: 'R' }, { string: 3, fret: 2, degree: '3' }, { string: 1, fret: 1, degree: 'R' } ], openStrings: [2,0], mutedStrings: [6,5] },
+    A: { rootString: 5, rootFret: 0, notes: [ { string: 3, fret: 2, degree: '3' }, { string: 2, fret: 2, degree: '5' }, { string: 1, fret: 2, degree: 'R' } ], openStrings: [5,0], mutedStrings: [6] },
+    G: { rootString: 5, rootFret: 3, notes: [ { string: 5, fret: 3, degree: 'R' }, { string: 4, fret: 2, degree: '3' }, { string: 0, fret: 3, degree: 'R' } ], openStrings: [3,2,1,0], mutedStrings: [6] },
+    E: { rootString: 6, rootFret: 0, notes: [ { string: 6, fret: 0, degree: 'R' }, { string: 4, fret: 2, degree: '5' }, { string: 3, fret: 1, degree: '3' } ], openStrings: [6,5,1,0] },
+    D: { rootString: 3, rootFret: 0, notes: [ { string: 2, fret: 2, degree: '3' }, { string: 1, fret: 3, degree: '5' }, { string: 0, fret: 2, degree: 'R' } ], openStrings: [3], mutedStrings: [6,5] },
+};
+
+export const generateCAGEDVoicings = (rootName: string): VoicingTemplate[] => {
+    const templates: VoicingTemplate[] = [];
+    // For each base shape, create a movable template for major quality
+    for (const shape of Object.keys(CAGED_BASES)) {
+        const base = CAGED_BASES[shape];
+        templates.push({
+            name: `CAGED ${shape}-shape`,
+            quality: 'maj',
+            rootNoteName: undefined,
+            isMovable: true,
+            root: { string: base.rootString, fret: base.rootFret },
+            notes: base.notes.map(n => ({ ...n, finger: '1' })),
+            openStrings: base.openStrings,
+            mutedStrings: base.mutedStrings,
+        });
+    }
+    // Optionally include shell voicings as non-contiguous muted templates
+    if (runtimeConfig.enableShellVoicings) {
+        // Add a couple of shell-style templates that rely on muted strings
+        templates.push({ name: 'Shell (EAD)', quality: 'maj', isMovable: false, root: { string: 5, fret: 0 }, notes: [ { string: 5, fret: 0, finger: '1', degree: 'R' }, { string: 4, fret: -1, finger: '1', degree: '7' }, { string: 3, fret: 1, finger: '2', degree: '3' } ], mutedStrings: [6,2,1,0] });
+    }
+    return templates;
+};
+
 export const generateDiatonicChords = (scaleNotes: ScaleNote[]): Map<string, Chord> => {
     const chords = new Map<string, Chord>();
     const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
@@ -91,11 +135,14 @@ export const generateDiatonicChords = (scaleNotes: ScaleNote[]): Map<string, Cho
         const rootScaleNote = scaleNotes[i];
         const third = scaleNotes[(i + 2) % scaleNotes.length];
         const fifth = scaleNotes[(i + 4) % scaleNotes.length];
-        const triadNotes = [rootScaleNote.noteName, third.noteName, fifth.noteName];
+    const rootName = normalizeNoteName(rootScaleNote.noteName);
+    const thirdName = normalizeNoteName(third.noteName);
+    const fifthName = normalizeNoteName(fifth.noteName);
+    const triadNotes = [rootName, thirdName, fifthName];
         
-        const rootIndex = NOTE_MAP[rootScaleNote.noteName];
-        const thirdIndex = NOTE_MAP[third.noteName];
-        const fifthIndex = NOTE_MAP[fifth.noteName];
+    const rootIndex = NOTE_MAP[rootName];
+    const thirdIndex = NOTE_MAP[thirdName];
+    const fifthIndex = NOTE_MAP[fifthName];
         const interval3 = (thirdIndex - rootIndex + 12) % 12;
         const interval5 = (fifthIndex - rootIndex + 12) % 12;
 
@@ -119,10 +166,21 @@ export const generateDiatonicChords = (scaleNotes: ScaleNote[]): Map<string, Cho
         }
 
         const voicings: Voicing[] = [];
-        CHORD_VOICING_LIBRARY.filter(v => v.quality === quality).forEach(template => {
+        // Start with static templates matching quality
+        let templates = CHORD_VOICING_LIBRARY.filter(v => v.quality === quality);
+        // For major chords, inject CAGED movable templates
+        if (quality === 'maj') {
+            templates = templates.concat(generateCAGEDVoicings(rootName));
+        }
+        // If shell chords are disabled, filter templates that look like shell voicings (muted non-contiguous)
+        if (!runtimeConfig.enableShellVoicings) {
+            templates = templates.filter(t => !(t.mutedStrings && t.mutedStrings.length > 0 && (!t.openStrings || t.openStrings.length < (t.mutedStrings.length - 1))));
+        }
+
+    templates.forEach(template => {
             if (template.isMovable) {
                 notesOnFretboard
-                    .filter(n => typeof n.fret === 'number' && n.noteName === rootScaleNote.noteName && n.string === template.root.string && n.fret > 0 && n.fret < 20)
+            .filter(n => typeof n.fret === 'number' && normalizeNoteName(n.noteName!) === rootName && n.string === template.root.string && n.fret > 0 && n.fret < 20)
                     .forEach(anchorNote => {
                         const fretDifference = (anchorNote.fret as number) - template.root.fret;
                         const transposedNotes = template.notes.map(note => ({ ...note, fret: (note.fret as number) + fretDifference }));
@@ -136,7 +194,7 @@ export const generateDiatonicChords = (scaleNotes: ScaleNote[]): Map<string, Cho
                             });
                         }
                     });
-            } else if (template.rootNoteName === rootScaleNote.noteName) {
+            } else if (template.rootNoteName && normalizeNoteName(template.rootNoteName) === rootName) {
                 voicings.push({
                     name: template.name, notes: template.notes.map(n => ({...n})),
                     barres: template.barres, openStrings: template.openStrings, mutedStrings: template.mutedStrings,
@@ -145,7 +203,7 @@ export const generateDiatonicChords = (scaleNotes: ScaleNote[]): Map<string, Cho
         });
         
         chords.set(degree, {
-            name: `${rootScaleNote.noteName}${nameSuffix}`,
+            name: `${rootName}${nameSuffix}`,
             degree: degree,
             voicings: voicings,
             triadNotes: triadNotes,

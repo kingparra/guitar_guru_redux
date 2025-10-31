@@ -83,6 +83,15 @@ const DiagramsSection: React.FC<{ scaleData: ScaleData }> = React.memo(({ scaleD
         onNoteClick: handleNoteClick,
     });
 
+    // Small debug overlay for anchor mode to inspect note view-model values
+    const anchorDebugInfo = useMemo(() => {
+        if (studioModes.studioMode !== 'anchor' || !viewModel) return null;
+        return viewModel.notes
+            .filter(n => n.highlightState === 'anchor')
+            .slice(0, 30)
+            .map(n => ({ key: n.key, displayText: n.displayText, intervalLabel: (n as any).intervalLabel, highlightState: n.highlightState, opacity: n.opacity }));
+    }, [studioModes.studioMode, viewModel]);
+
     return (
         <div className="space-y-4">
             <Card>
@@ -99,6 +108,12 @@ const DiagramsSection: React.FC<{ scaleData: ScaleData }> = React.memo(({ scaleD
                 hasRun={!!(diagramData.diagonalRun && diagramData.diagonalRun.length > 0)}
                 numPositions={diagramData.fingering.length}
             />
+            {anchorDebugInfo && (
+                <div className="p-3 bg-black/30 rounded-md text-xs text-gray-200"> 
+                    <strong>Anchor debug:</strong>
+                    <pre style={{whiteSpace: 'pre-wrap', maxHeight: 200, overflow: 'auto'}}>{JSON.stringify(anchorDebugInfo, null, 2)}</pre>
+                </div>
+            )}
             
             {studioModes.studioMode === 'inspector' && (
                 <ChordInspectorPanel 

@@ -12,8 +12,8 @@ const FretboardNote: React.FC<FretboardNoteViewProps> = React.memo(({
 }) => {
     const {
         note, x, y, displayText, fillColor, textColor, radius,
-        opacity, highlightState, isPulsing, strokeWidth, onClick
-    } = viewModel;
+        opacity, highlightState, isPulsing, strokeWidth, onClick, intervalLabel
+    } = viewModel as any;
 
     if (note.isMuted) {
         return (
@@ -49,6 +49,17 @@ const FretboardNote: React.FC<FretboardNoteViewProps> = React.memo(({
             <text x={x} y={y} textAnchor="middle" dy="0.35em" fontSize={noteFontSize * fontScale} fill={textColor} fontWeight="bold" style={{ pointerEvents: 'none' }}>
                 {displayText}
             </text>
+
+            {/* Render interval pill when this is an anchor-highlighted or inspector-highlighted note and we have an intervalLabel/degree */}
+            {(highlightState === 'anchor' || highlightState === 'characteristic' || highlightState === 'pitch' || highlightState === 'tension' || highlightState === 'playback') && intervalLabel && (
+                <g style={{ pointerEvents: 'none' }}>
+                    {/* Pill background - positioned to the right-top of the note */}
+                    <rect x={x + radius * fontScale + 6} y={y - (noteFontSize * fontScale) / 2 - 4} rx={8} ry={8}
+                        width={Math.max(28, (intervalLabel as string).length * 8)} height={(noteFontSize * fontScale) + 6} fill={COLORS.bgSecondary} opacity={0.95} />
+                    <text x={x + radius * fontScale + 6 + (Math.max(28, (intervalLabel as string).length * 8) / 2)}
+                        y={y} dy="0.35em" textAnchor="middle" fontSize={(noteFontSize - 4) * fontScale} fill={COLORS.textPrimary} fontWeight={700}>{intervalLabel}</text>
+                </g>
+            )}
         </g>
     );
 });

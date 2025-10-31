@@ -1,23 +1,8 @@
-
-
-import type { FontSizeKey } from './types';
-
-export const TUNING = ['e', 'B', 'G', 'D', 'A', 'E', 'B']; // High to low
-export const NUM_STRINGS = 7;
-export const NUM_FRETS = 24;
-
-export const FRET_MARKERS = [3, 5, 7, 9, 12, 15, 17, 19, 21, 24];
-
 export const ALL_NOTES = [
     'A', 'A#', 'B', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#',
 ];
-export const NOTE_MAP = ALL_NOTES.reduce(
-    (acc, note, i) => ({ ...acc, [note]: i }),
-    {} as Record<string, number>
-);
+export const NOTE_MAP = ALL_NOTES.reduce((acc, note, i) => ({ ...acc, [note]: i }), {} as Record<string, number>);
 
-// Normalize note names to a canonical sharp-based, uppercase representation.
-// Handles common flat inputs (e.g. Bb -> A#) and maps enharmonics like B# -> C, Cb -> B.
 export const normalizeNoteName = (note: string): string => {
     if (!note) return note;
     const n = note.trim();
@@ -33,9 +18,7 @@ export const normalizeNoteName = (note: string): string => {
     };
     const up = n.toUpperCase();
     if (map[up]) return map[up];
-    // If already in ALL_NOTES, return as-is (ensure uppercase)
     if (ALL_NOTES.includes(up)) return up;
-    // Fallback: return uppercase first char and optional accidental
     const m = up.match(/^([A-G])([#b])?$/);
     if (m) {
         const base = m[1];
@@ -46,7 +29,6 @@ export const normalizeNoteName = (note: string): string => {
     }
     return up;
 };
-
 export const SCALE_FORMULAS: Record<string, [number, string][]> = {
     Major: [[2, '2'], [2, '3'], [1, '4'], [2, '5'], [2, '6'], [2, '7']],
     'Natural Minor': [[2, '2'], [1, 'b3'], [2, '4'], [2, '5'], [1, 'b6'], [2, 'b7']],
@@ -69,55 +51,9 @@ export const SCALE_FORMULAS: Record<string, [number, string][]> = {
     'Hungarian Minor': [[2, '2'], [1, 'b3'], [3, '#4'], [1, '5'], [1, 'b6'], [3, '7']],
     'Neapolitan Minor': [[1, 'b2'], [2, 'b3'], [2, '4'], [2, '5'], [1, 'b6'], [3, '7']],
 };
-
-export const COLORS = {
-    bgPrimary: '#0D0B1A',
-    bgCard: 'rgba(23, 21, 40, 0.6)',
-    bgInput: 'rgba(23, 21, 40, 0.8)',
-    textPrimary: '#E0E0E0',
-    textSecondary: '#A0A0C0',
-    textHeader: '#FFFFFF',
-    accentGold: '#FFD700', // For interactive highlights
-    accentCyan: '#00FFFF',
-    accentMagenta: '#FF00FF',
-    grid: '#222030',
-    root: '#B8860B', // DarkGoldenRod - subdued
-    tone: '#556677',
-    characteristicOutline: '#9070C0', // Subdued violet
-    tensionNote: '#FF4500', // OrangeRed for tension notes
-    anchorNote: '#00BFFF', // DeepSkyBlue for anchor note pulse
-};
-
-// Secondary background color used for small UI elements like interval pills
-// Kept darker to contrast with note text.
-COLORS['bgSecondary'] = '#11121A';
-
-export const OCTAVE_COLORS: Record<number, string> = {
-    // Even more subdued / darker octave palette
-    // These are lower-saturation, slightly darker tones to reduce perceived brightness
-    0: '#413049', // deep muted purple
-    1: '#534156', // soft desaturated violet
-    2: '#2b486a', // darker, desaturated blue
-    3: '#2a5b52', // deep muted teal
-    4: '#998f3a', // muted mustard (less luminous)
-    5: '#855c3c', // warm desaturated brownish-orange
-    6: '#6b2e2e', // deep muted red
-};
-
-export const DEGREE_COLORS: Record<string, string> = {
-    major: 'bg-sky-500/80 text-sky-100',
-    minor: 'bg-purple-500/80 text-purple-100',
-    diminished: 'bg-slate-500/80 text-slate-100',
-    augmented: 'bg-amber-500/80 text-amber-100',
-    dominant: 'bg-rose-500/80 text-rose-100',
-    default: 'bg-gray-600/80 text-gray-100',
-};
-
-export const FONT_SIZES: Record<FontSizeKey, string> = {
-    S: '0.75rem',
-    M: '0.875rem',
-    L: '1rem',
-};
-
-// Toggle to enable or disable shell voicings (voicings that rely on muted, non-contiguous strings)
+export const TUNING = ['e', 'B', 'G', 'D', 'A', 'E', 'B'];
+export const NUM_STRINGS = 7;
+export const NUM_FRETS = 24;
+export const FRET_MARKERS = [3, 5, 7, 9, 12, 15, 17, 19, 21, 24];
 export const ENABLE_SHELL_CHORDS = true;
+

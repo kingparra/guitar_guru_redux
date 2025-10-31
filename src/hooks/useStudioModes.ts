@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import { runtimeConfig } from '../config';
 import type { StudioMode, Chord } from '../types';
 
 /**
@@ -8,6 +9,7 @@ import type { StudioMode, Chord } from '../types';
  */
 export const useStudioModes = (diatonicChords: Chord[]) => {
     const [studioMode, setStudioMode] = useState<StudioMode>(null);
+    const [enableShellVoicings, setEnableShellVoicings] = useState<boolean>(runtimeConfig.enableShellVoicings);
     const [selectedChordName, setSelectedChordName] = useState<string | null>(null);
     const [selectedPositionIndex, setSelectedPositionIndex] = useState(0);
     const [selectedVoicingIndex, setSelectedVoicingIndex] = useState(-1);
@@ -39,6 +41,8 @@ export const useStudioModes = (diatonicChords: Chord[]) => {
     return {
         studioMode,
         setStudioMode: handleModeChange,
+    enableShellVoicings,
+    setEnableShellVoicings,
         selectedChordName,
         selectedChord,
         onChordChange: handleChordChange,

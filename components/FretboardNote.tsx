@@ -102,53 +102,54 @@ const FretboardNote: React.FC<FretboardNoteProps> = React.memo(({
                 {displayText}
             </text>
 
-            {/* Chord Inspector interval/tag: render a small rounded rect with degree text to the right of the marker */}
-            {studioMode === 'inspector' && isInLayer && note.degree && (
+            {/* Chord Inspector / Anchor interval/tag: render a small rounded rect with degree text to the right of the marker */}
+                    {(studioMode === 'inspector' || studioMode === 'anchor') && isInLayer && (note.degree || (note as any).intervalLabel) && (
                 <g pointerEvents="none">
                     {/* calculate pill size so text stays inside */}
                     {
                         (() => {
-                            const tagFontSize = 12 * fontScale;
-                            const paddingX = 6 * fontScale;
-                            const paddingY = 4 * fontScale;
-                            const approxCharWidth = tagFontSize * 0.6; // rough estimate per char
-                            const textWidth = Math.max(tagFontSize, note.degree.length * approxCharWidth);
-                            const rectWidth = textWidth + paddingX * 2;
-                            const rectHeight = tagFontSize + paddingY * 2;
-                            const gap = 6 * fontScale; // space between circle and pill
-                            const rectX = x + r + gap;
-                            const rectY = y - rectHeight / 2;
-                            const textX = rectX + rectWidth / 2;
-                            const textY = y; // use dominantBaseline to center vertically
+                                    const label = (note as any).intervalLabel || note.degree || '';
+                                    const tagFontSize = 12 * fontScale;
+                                    const paddingX = 6 * fontScale;
+                                    const paddingY = 4 * fontScale;
+                                    const approxCharWidth = tagFontSize * 0.6; // rough estimate per char
+                                    const textWidth = Math.max(tagFontSize, label.length * approxCharWidth);
+                                    const rectWidth = textWidth + paddingX * 2;
+                                    const rectHeight = tagFontSize + paddingY * 2;
+                                    const gap = 6 * fontScale; // space between circle and pill
+                                    const rectX = x + r + gap;
+                                    const rectY = y - rectHeight / 2;
+                                    const textX = rectX + rectWidth / 2;
+                                    const textY = y; // use dominantBaseline to center vertically
 
-                            return (
-                                <g>
-                                    <rect
-                                        x={rectX}
-                                        y={rectY}
-                                        rx={rectHeight / 2}
-                                        ry={rectHeight / 2}
-                                        width={rectWidth}
-                                        height={rectHeight}
-                                        fill={COLORS.bgInput}
-                                        stroke={COLORS.characteristicOutline}
-                                        strokeWidth={1}
-                                        opacity={0.95}
-                                    />
-                                    <text
-                                        x={textX}
-                                        y={textY}
-                                        textAnchor="middle"
-                                        dominantBaseline="middle"
-                                        fontSize={tagFontSize}
-                                        fill={COLORS.textPrimary}
-                                        fontWeight={600}
-                                        style={{ pointerEvents: 'none' }}
-                                    >
-                                        {note.degree}
-                                    </text>
-                                </g>
-                            );
+                                    return (
+                                        <g>
+                                            <rect
+                                                x={rectX}
+                                                y={rectY}
+                                                rx={rectHeight / 2}
+                                                ry={rectHeight / 2}
+                                                width={rectWidth}
+                                                height={rectHeight}
+                                                fill={COLORS.bgInput}
+                                                stroke={COLORS.characteristicOutline}
+                                                strokeWidth={1}
+                                                opacity={0.95}
+                                            />
+                                            <text
+                                                x={textX}
+                                                y={textY}
+                                                textAnchor="middle"
+                                                dominantBaseline="middle"
+                                                fontSize={tagFontSize}
+                                                fill={COLORS.textPrimary}
+                                                fontWeight={600}
+                                                style={{ pointerEvents: 'none' }}
+                                            >
+                                                {label}
+                                            </text>
+                                        </g>
+                                    );
                         })()
                     }
                 </g>

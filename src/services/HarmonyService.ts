@@ -1,4 +1,6 @@
-import { NOTE_MAP } from '../constants';
+import { NOTE_MAP, normalizeNoteName } from '../constants.ts';
+import { runtimeConfig } from '../config';
+import { generateCAGEDVoicings } from '../../utils/guitarUtils';
 import type { Chord, Voicing, DiagramNote, ScaleData, ChordProgression, AnchorNoteContext, ChordInspectorData } from '../types';
 import { MusicTheoryService } from './MusicTheoryService';
 
@@ -28,7 +30,7 @@ export class HarmonyService {
     public static generateDiatonicChords(scaleNotes: ScaleNote[], notesOnFretboard: DiagramNote[]): Map<string, Chord> {
         const chords = new Map<string, Chord>();
         const romanNumerals = ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°']; // Example for Major
-        const scaleNoteNames = scaleNotes.map(n => n.noteName);
+    const scaleNoteNames = scaleNotes.map(n => normalizeNoteName(n.noteName));
 
         for (let i = 0; i < scaleNotes.length; i++) {
             const root = scaleNoteNames[i];
@@ -36,10 +38,10 @@ export class HarmonyService {
             const fifth = scaleNoteNames[(i + 4) % scaleNoteNames.length];
             const seventh = scaleNoteNames[(i + 6) % scaleNoteNames.length];
             
-            const rootIdx = NOTE_MAP[root];
-            const thirdInterval = (NOTE_MAP[third] - rootIdx + 12) % 12;
-            const fifthInterval = (NOTE_MAP[fifth] - rootIdx + 12) % 12;
-            const seventhInterval = (NOTE_MAP[seventh] - rootIdx + 12) % 12;
+            const rootIdx = NOTE_MAP[normalizeNoteName(root)];
+            const thirdInterval = (NOTE_MAP[normalizeNoteName(third)] - rootIdx + 12) % 12;
+            const fifthInterval = (NOTE_MAP[normalizeNoteName(fifth)] - rootIdx + 12) % 12;
+            const seventhInterval = (NOTE_MAP[normalizeNoteName(seventh)] - rootIdx + 12) % 12;
             
             let quality: Chord['quality'] = 'maj';
             let degree = '';
@@ -63,9 +65,26 @@ export class HarmonyService {
             }
 
             const voicings: Voicing[] = [];
-            CHORD_VOICING_LIBRARY.filter(v => v.quality.includes(quality)).forEach(template => {
-                 notesOnFretboard
-                    .filter(n => n.noteName === root && n.string === template.root.string && typeof n.fret === 'number' && n.fret > 0 && n.fret < 20)
+            // Start with the static voicing library; then for major chords include CAGED-generated templates
+            let templates = CHORD_VOICING_LIBRARY.filter(v => v.quality.includes(quality));
+            if (quality === 'maj') {
+                const cages = generateCAGEDVoicings(root).map(t => ({
+                    name: t.name,
+                    quality: [t.quality as any],
+                    root: t.root,
+                    notes: t.notes,
+                    openStrings: t.openStrings,
+                    mutedStrings: t.mutedStrings,
+                    isMovable: t.isMovable,
+                }));
+                templates = templates.concat(cages as any);
+            }
+            if (!runtimeConfig.enableShellVoicings) {
+                templates = templates.filter(t => !(t.mutedStrings && t.mutedStrings.length > 0 && (!t.openStrings || t.openStrings.length < (t.mutedStrings.length - 1))));
+            }
+            templates.forEach(template => {
+                      notesOnFretboard
+                          .filter(n => normalizeNoteName(n.noteName!) === normalizeNoteName(root) && n.string === template.root.string && typeof n.fret === 'number' && n.fret > 0 && n.fret < 20)
                     .forEach(anchorNote => {
                         const fretDiff = (anchorNote.fret as number) - template.root.fret;
                         const transposedNotes = template.notes.map(note => ({ ...note, fret: (note.fret as number) + fretDiff }));
@@ -87,12 +106,15 @@ export class HarmonyService {
     }
 
     public static getChordInspectorData(chord: Chord, parentScale: ScaleNote[]): ChordInspectorData {
-        const parentScaleNotes = new Set(parentScale.map(n => n.noteName));
-        const chordTones = chord.seventhNotes; // Use 7th chord tones for analysis
-        const scaleTones = Array.from(parentScaleNotes).filter(note => !chordTones.includes(note));
-        
-        const chordRootIndex = NOTE_MAP[chordTones[0]];
-        const tensionNotes: string[] = [];
+    // Normalize parent scale and chord tone names so all interval math uses canonical names
+    const parentScaleNotes = new Set(parentScale.map(n => normalizeNoteName(n.noteName)));
+    const chordTones = chord.seventhNotes.map(n => normalizeNoteName(n)); // Use 7th chord tones for analysis (normalized)
+    const scaleTones = Array.from(parentScaleNotes).filter(note => !chordTones.includes(note));
+
+    if (chordTones.length === 0) return { chordTones, scaleTones, tensionNotes: [] } as any;
+
+    const chordRootIndex = NOTE_MAP[chordTones[0]];
+    const tensionNotes: string[] = [];
 
         for (const note of scaleTones) {
             const noteIndex = NOTE_MAP[note];
@@ -125,20 +147,41 @@ export class HarmonyService {
          if (typeof anchorNote.fret !== 'number' || !anchorNote.noteName) return [];
          const contexts: AnchorNoteContext[] = [];
 
+        const getDegreeInTriad = (noteName: string, triad: string[], quality: Chord['quality']): string => {
+            const index = triad.findIndex(n => normalizeNoteName(n) === normalizeNoteName(noteName));
+            switch (index) {
+                case 0: return 'R';
+                case 1: return (quality === 'min' || quality === 'dim') ? 'b3' : '3';
+                case 2: return quality === 'dim' ? 'b5' : quality === 'aug' ? '#5' : '5';
+                default: return '';
+            }
+        };
+
         for (const chord of diatonicChords) {
-            if (chord.seventhNotes.includes(anchorNote.noteName)) {
+            // Normalize the chord tones for comparison
+            const chordTones = (chord.seventhNotes || []).map(n => normalizeNoteName(n));
+            if (chordTones.length === 0) continue;
+
+            if (chordTones.includes(normalizeNoteName(anchorNote.noteName!))) {
                 const baseFret = Math.max(0, anchorNote.fret - 2);
                 const maxFret = baseFret + 4;
 
                 const arpeggioNotesInBox = notesOnFretboard.filter(note =>
-                    typeof note.fret === 'number' && chord.seventhNotes.includes(note.noteName!) &&
+                    typeof note.fret === 'number' && chordTones.includes(normalizeNoteName(note.noteName!)) &&
                     note.fret >= baseFret && note.fret <= maxFret
                 );
                 if (arpeggioNotesInBox.length < 2) continue;
 
+                // Determine chord quality for degree labeling
+                let quality: Chord['quality'] = 'maj';
+                if (chord.name.includes('dim')) quality = 'dim';
+                else if (chord.name.includes('aug')) quality = 'aug';
+                else if (chord.name.includes('m')) quality = 'min';
+
                 const fingeredArpeggioNotes = arpeggioNotesInBox.map(note => ({
                     ...note,
                     finger: ((note.fret as number) - baseFret + 1).toString(),
+                    degree: getDegreeInTriad(note.noteName!, chord.triadNotes, quality)
                 }));
 
                 contexts.push({

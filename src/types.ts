@@ -203,6 +203,8 @@ export interface FretboardNoteViewModel {
     x: number;
     y: number;
     displayText: string;
+    // Optional interval/degree label to show in a pill when highlighted (anchor mode)
+    intervalLabel?: string;
     fillColor: string;
     textColor: string;
     radius: number;
